@@ -1,0 +1,62 @@
+# ------------------------------------------------------------
+# .gitignore — Manual Mestre
+# Regra: o que é gerado, secreto ou específico da máquina não entra.
+# Ver 02.09 (o mecanismo) e 02.06 (por que segredos ficam de fora).
+# ------------------------------------------------------------
+
+# --- Python: artefatos gerados ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# --- Ambientes virtuais (módulo 04) ---
+.venv/
+venv/
+env/
+
+# --- Segredos: NUNCA versionar ---
+.env
+.env.local
+*.key
+*.pem
+credenciais*
+segredos*
+
+# --- Bancos locais (módulo 05) ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Saídas geradas e temporários ---
+saidas/
+*.log
+*.tmp
+quarentena_*.csv
+
+# --- Sistema operacional ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor: config pessoal da máquina, não do projeto ---
+.vscode/settings.json
+.idea/
+
+# --- Resíduos e scripts de uso único ---
+.teste_git
+versionar_repositorio.sh
+
+# ------------------------------------------------------------
+# Exceções deliberadas (o "!" reverte a exclusão — 02.09)
+# ------------------------------------------------------------
+
+# O modelo das variáveis de ambiente é versionado; o .env real não.
+!.env.example
+
+# 01-Python/codigo/cap25/saida/ é EXCEÇÃO consciente à regra "saidas/":
+# aquele conteúdo não é artefato de build, é a saída de referência do
+# mini projeto — quem clona precisa dela para conferir o próprio resultado.
+!01-Python/codigo/cap25/saida/
+!01-Python/codigo/cap25/saida/**
