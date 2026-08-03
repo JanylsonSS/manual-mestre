@@ -143,3 +143,49 @@ Pontos da saída forte:
 3. O segundo movimento — **não dá para saber a intenção olhando o código**; o problema real é a ambiguidade, e a correção é usar parênteses sempre;
 4. Bônus integrador: se `ativo` aceitar `NULL`, há um terceiro problema — as linhas com `ativo` nulo somem do segundo ramo.
 </details>
+
+### P-03.04-01 `[conceitual · júnior]` — O que acontece se você usar `LIMIT` sem `ORDER BY`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. O resultado é **indeterminado** — `LIMIT` corta um conjunto sem ordem definida;
+2. O banco pode devolver linhas diferentes a cada execução;
+3. Funciona por acaso em bancos pequenos e estáticos (ordem física estável);
+4. O sintoma aparece como **bug de paginação**: item repetido numa página e ausente de outra.
+</details>
+
+### P-03.04-02 `[código · júnior]` — `SELECT DISTINCT a, b` — o `DISTINCT` se aplica a quê?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. À **linha inteira** do resultado — ao par (a, b), não à primeira coluna;
+2. Não existe "distinct de uma coluna só" no `SELECT`; para isso, peça só aquela coluna;
+3. Para um representante por grupo (com agregação), a ferramenta é `GROUP BY`;
+4. Bônus: `DISTINCT` trata múltiplos `NULL` como **um** valor, ao contrário do `WHERE`.
+</details>
+
+### P-03.04-03 `[conceitual · pleno]` — Por que o apelido do `SELECT` funciona no `ORDER BY` e não no `WHERE`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Ordem de execução: `FROM` → `WHERE` → `SELECT` → `DISTINCT` → `ORDER BY` → `LIMIT`;
+2. Quando o `WHERE` roda, o apelido ainda não foi criado; o `ORDER BY` roda depois e o enxerga;
+3. Alguns bancos (SQLite, MySQL) aceitam o apelido no `WHERE` como **extensão não padrão**;
+4. A forma correta repete a expressão no `WHERE` — que, de quebra, permite usar índice.
+</details>
+
+### P-03.04-04 `[pegadinha · pleno]` — Uma tela pagina de 20 em 20 e às vezes um item aparece em duas páginas, e outro nunca aparece. O código não mudou. O que houve?
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: o sintoma parece impossível e a causa é de uma linha.
+
+Pontos da saída forte, em três movimentos:
+1. **Diagnóstico** — a ordenação não é **total**; a ordem entre empatados é arbitrária e pode diferir entre as consultas de cada página;
+2. **Correção imediata** — incluir a chave primária como último critério: `ORDER BY criado_em DESC, id DESC`;
+3. **O que separa** — mesmo com ordenação total, uma **inserção** entre as duas consultas desloca tudo e o sintoma volta; a solução definitiva é **paginação por cursor**;
+4. Por que sobrevive: exige movimento de dados, e ambientes de teste são estáticos.
+</details>
