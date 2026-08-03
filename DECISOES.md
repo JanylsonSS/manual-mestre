@@ -61,3 +61,13 @@ Decisões tomadas durante a geração que a especificação não cobria (§34.3)
 **Contexto:** versões antigas do Git criam a linha principal como `master`; versões recentes e todos os serviços de hospedagem usam `main`. O aluno pode ter qualquer uma das duas.
 **Decisão:** o manual adota **`main`** em todo o texto e nos scripts (`git init -b main`, `git config --global init.defaultBranch main`), com nota no 02.08 informando que versões antigas mostram `master` e que os dois são apenas nomes de branch.
 **Consequência:** vale para todos os módulos seguintes; os scripts que criam repositórios de laboratório passam `-b main` explicitamente para produzir a mesma saída em qualquer versão.
+
+## D-013 — 2026-08-03 — Executor Python em vez da CLI do SQLite
+**Contexto:** o §32 exige que todo código do manual seja executável e verificado. A CLI `sqlite3` é um download extra no Windows, e ferramentas gráficas (DB Browser, extensões do VS Code) não produzem saída copiável para o texto do capítulo.
+**Decisão:** o laboratório do módulo 03 é operado por **`codigo/sql.py`**, um executor em Python (biblioteca padrão, ~130 linhas) que roda um arquivo `.sql`, uma consulta passada como argumento, ou abre modo interativo — e formata o resultado em tabela, exibindo `NULL` explicitamente. Os arquivos `.sql` permanecem SQL puro e portável.
+**Consequência:** zero instalação além do Python do 00.03; toda saída dos capítulos é verificável; ferramentas gráficas são mencionadas como conforto opcional, nunca como pré-requisito. O caminho do banco respeita `AURORA_BANCO` (02.06).
+
+## D-014 — 2026-08-03 — Banco de laboratório pré-construído
+**Contexto:** o mapa da spec põe a modelagem no 03.16, mas os capítulos 03.03 a 03.10 precisam de dados para consultar desde o início.
+**Decisão:** o 03.01 entrega o schema da Aurora **pronto e populado** (clientes, produtos, pedidos, itens_pedido — 71 linhas), com casos de ensino embutidos de propósito: um cliente sem compras (anti-join, 03.08), um e-mail `NULL` (03.03), uma cidade `NULL` (03.05), um produto nunca vendido (03.08) e pedidos cancelado/pendente (filtros, 03.03). O aluno **consulta** um schema existente antes de **projetar** o próprio.
+**Consequência:** o 03.16 reconstrói o mesmo schema do zero, agora justificando cada decisão — o aluno compara a própria modelagem com a que usou por quinze capítulos. O arquivo `.db` é gerado, nunca versionado (`*.db` já está no `.gitignore`).
