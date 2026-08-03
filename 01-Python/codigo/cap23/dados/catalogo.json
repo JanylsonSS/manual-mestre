@@ -1,0 +1,69 @@
+[
+  {
+    "codigo": "PED-2026-00123",
+    "cliente": {
+      "nome": "Ana Souza",
+      "endereco": {
+        "cidade": "Campinas",
+        "cep": "13010-000"
+      }
+    },
+    "itens": [
+      {
+        "produto": "Fone Bluetooth",
+        "quantidade": 1,
+        "valor_centavos": 46990
+      },
+      {
+        "produto": "Cabo HDMI",
+        "quantidade": 2,
+        "valor_centavos": 9890
+      }
+    ],
+    "pago": true,
+    "observacao": null
+  },
+  {
+    "codigo": "PED-2026-00124",
+    "cliente": {
+      "nome": "Bruno Lima",
+      "endereco": {
+        "cidade": "Santos",
+        "cep": "11010-000"
+      }
+    },
+    "itens": [
+      {
+        "produto": "Mouse Sem Fio",
+        "quantidade": 1,
+        "valor_centavos": 8990
+      }
+    ],
+    "pago": false,
+    "observacao": "entrega expressa"
+  },
+  {
+    "codigo": "PED-2026-00125",
+    "cliente": {
+      "nome": "Carla Dias",
+      "endereco": {
+        "cidade": "Campinas",
+        "cep": "13020-000"
+      }
+    },
+    "itens": [
+      {
+        "produto": "Teclado Mecânico",
+        "quantidade": 1,
+        "valor_centavos": 34900
+      },
+      {
+        "produto": "Mousepad",
+        "quantidade": 1,
+        "valor_centavos": 4990
+      }
+    ],
+    "pago": true,
+    "observacao": null
+  }
+]

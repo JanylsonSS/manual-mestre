@@ -1,0 +1,4 @@
+linha;tipo;mensagem
+4;VALOR_INVALIDO;invalid literal for int() with base 10: 'abc'
+8;CAMPOS_FALTANDO;esperava 4 colunas, veio 3
+12;CIDADE_VAZIA;cidade obrigatória

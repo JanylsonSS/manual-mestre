@@ -1,0 +1,8 @@
+RELATÓRIO DE VENDAS — AURORA
+============================================
+campinas    | 4 pedidos | R$   1.038,60
+santos      | 3 pedidos | R$     458,80
+sorocaba    | 1 pedido  | R$      98,90
+são paulo   | 2 pedidos | R$     508,90
+
+Total geral: R$ 2.105,20

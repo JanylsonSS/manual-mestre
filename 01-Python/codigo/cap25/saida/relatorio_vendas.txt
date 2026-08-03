@@ -1,0 +1,32 @@
+================================================================
+RELATÓRIO DE VENDAS — AURORA COMÉRCIO
+Origem: vendas.csv | Gerado em: 2026-07-31 10:25:03
+================================================================
+
+IMPORTAÇÃO
+  Lidas: 13 | Válidas: 10 | Rejeitadas: 3
+
+VENDAS POR CIDADE
+  campinas    |  4 pedidos | R$   1.038,60
+  santos      |  3 pedidos | R$     458,80
+  sorocaba    |  1 pedido  | R$      98,90
+  são paulo   |  2 pedidos | R$     508,90
+  ----------------------------------------------
+  TOTAL       | 10 pedidos | R$   2.105,20
+  Prova dos nove: OK (soma das cidades = total geral)
+
+VENDAS POR PRODUTO (top 5)
+  Webcam HD            | 1 un | R$     478,90
+  Fone Bluetooth XZ-9  | 1 un | R$     469,90
+  Headset Gamer        | 1 un | R$     349,00
+  Luminária LED        | 1 un | R$     239,00
+  Hub USB-C            | 1 un | R$     159,90
+
+INDICADORES
+  Ticket médio: R$ 210,52
+  Cidade campeã: campinas (R$ 1.038,60)
+
+QUARENTENA (3 linhas)
+  Linha  4 | VALOR_INVALIDO   | invalid literal for int() with base 10: 'abc'
+  Linha  8 | CAMPOS_FALTANDO  | esperava 4 colunas, veio 3
+  Linha 12 | CIDADE_VAZIA     | cidade obrigatória

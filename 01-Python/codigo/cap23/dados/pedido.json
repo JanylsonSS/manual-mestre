@@ -1,0 +1,24 @@
+{
+  "codigo": "PED-2026-00123",
+  "cliente": {
+    "nome": "Ana Souza",
+    "endereco": {
+      "cidade": "Campinas",
+      "cep": "13010-000"
+    }
+  },
+  "itens": [
+    {
+      "produto": "Fone Bluetooth",
+      "quantidade": 1,
+      "valor_centavos": 46990
+    },
+    {
+      "produto": "Cabo HDMI",
+      "quantidade": 2,
+      "valor_centavos": 9890
+    }
+  ],
+  "pago": true,
+  "observacao": null
+}

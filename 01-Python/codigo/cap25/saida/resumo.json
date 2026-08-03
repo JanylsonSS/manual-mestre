@@ -1,0 +1,28 @@
+{
+  "origem": "vendas.csv",
+  "gerado_em": "2026-07-31T10:25:03",
+  "funil": {
+    "lidas": 13,
+    "validas": 10,
+    "rejeitadas": 3
+  },
+  "total_geral_centavos": 210520,
+  "por_cidade": {
+    "campinas": 103860,
+    "santos": 45880,
+    "sorocaba": 9890,
+    "são paulo": 50890
+  },
+  "por_produto": {
+    "Fone Bluetooth XZ-9": 46990,
+    "Mouse Sem Fio": 8990,
+    "Cabo HDMI, 2 metros": 9890,
+    "Webcam HD": 47890,
+    "Headset Gamer": 34900,
+    "Suporte de Mesa": 12990,
+    "Hub USB-C": 15990,
+    "Mousepad Grande": 4990,
+    "Luminária LED": 23900,
+    "Filtro de Linha": 3990
+  }
+}

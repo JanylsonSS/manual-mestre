@@ -1,0 +1,9 @@
+{
+  "cidades_atendidas": [
+    "campinas",
+    "santos",
+    "sao paulo"
+  ],
+  "frete_gratis_a_partir_de_centavos": 29900,
+  "parcelas_maximas": 12
+}

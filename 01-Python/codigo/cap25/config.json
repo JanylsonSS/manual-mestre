@@ -1,0 +1,6 @@
+{
+  "arquivo_vendas": "dados/vendas.csv",
+  "separador": ";",
+  "cidades_atendidas": ["campinas", "santos", "sao paulo", "sorocaba"],
+  "top_produtos": 5
+}
