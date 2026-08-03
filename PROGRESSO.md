@@ -8,13 +8,13 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 |---|---|
 | Fase | 1 — Fundamentos |
 | Módulo | 00 — Introdução |
-| Próximo capítulo | 00.01 |
+| Próximo capítulo | 00.02 |
 
 ## Diário
 
 | Data | Capítulo/Item | Tipo (novo/revisão/checkpoint) | Resultado | Observações |
 |---|---|---|---|---|
-| | | | | |
+| 01/08/26 | 00.01 | novo | | |
 
 ## Reprovações e retomadas
 
