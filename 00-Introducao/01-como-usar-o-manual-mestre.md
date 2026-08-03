@@ -319,20 +319,20 @@ Requisitos numerados:
 
 Perguntas de domínio — aplique o teste do sim (conseguiria agora, sem olhar?):
 
-- [Não] Sei explicar *por que a trilha é linear e o que é o grafo de dependências*?
-- [Não] Sei explicar *o papel dos 4 níveis de prática e a regra dos 15 minutos*?
-- [Sim] Sei explicar *o ciclo D+1/D+7/D+30/D+90 e por que revisão vencida bloqueia conteúdo novo*?
-- [Sim] Sei diferenciar *CP1, CP2 e CP3, com o instrumento e o critério de cada um*?
-- [Sim] Sei responder *à pergunta de entrevista "como você sabe que aprendeu de verdade?"*?
+- [ ] Sei explicar *por que a trilha é linear e o que é o grafo de dependências*?
+- [ ] Sei explicar *o papel dos 4 níveis de prática e a regra dos 15 minutos*?
+- [x] Sei explicar *o ciclo D+1/D+7/D+30/D+90 e por que revisão vencida bloqueia conteúdo novo*?
+- [x] Sei diferenciar *CP1, CP2 e CP3, com o instrumento e o critério de cada um*?
+- [x] Sei responder *à pergunta de entrevista "como você sabe que aprendeu de verdade?"*?
 
 Itens práticos:
 
-- [Sim] Fiz o tour guiado da seção 9 e sei localizar README, spec, `PROGRESSO.md` e `Revisoes/agenda.md`.
-- [Sim] Registrei a sessão no `PROGRESSO.md`.
-- [Sim] Fiz os exercícios de Aquecimento e Aplicação (e tentei o Desafio por 15+ min antes das dicas).
-- [Sim] Completei o mini projeto "Painel de voo" (4 requisitos).
-- [Sim] Acertei — ou entendi por que errei — o exercício de previsão da seção 4.
-- [Sim] Agendei as revisões D+1/D+7/D+30/D+90 deste capítulo na agenda.
+- [x] Fiz o tour guiado da seção 9 e sei localizar README, spec, `PROGRESSO.md` e `Revisoes/agenda.md`.
+- [x] Registrei a sessão no `PROGRESSO.md`.
+- [x] Fiz os exercícios de Aquecimento e Aplicação (e tentei o Desafio por 15+ min antes das dicas).
+- [x] Completei o mini projeto "Painel de voo" (4 requisitos).
+- [x] Acertei — ou entendi por que errei — o exercício de previsão da seção 4.
+- [x] Agendei as revisões D+1/D+7/D+30/D+90 deste capítulo na agenda.
 
 ---
 

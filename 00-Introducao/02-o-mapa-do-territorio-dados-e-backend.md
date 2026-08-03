@@ -291,19 +291,19 @@ Requisitos numerados:
 
 Perguntas de domínio — teste do sim:
 
-- [ ] Sei explicar *o que cada um dos três papéis entrega e onde eles se encontram*?
-- [ ] Sei explicar *por que o banco de dados é o centro do território*?
+- [x] Sei explicar *o que cada um dos três papéis entrega e onde eles se encontram*?
+- [x] Sei explicar *por que o banco de dados é o centro do território*?
 - [ ] Sei localizar *as tecnologias da trilha no mapa (sem decorar — entendendo o porquê)*?
-- [ ] Sei diferenciar *engenharia de dados de ciência de dados em duas frases*?
-- [ ] Sei responder *à pegadinha "você é backend ou engenheiro de dados?"*?
+- [x] Sei diferenciar *engenharia de dados de ciência de dados em duas frases*?
+- [x] Sei responder *à pegadinha "você é backend ou engenheiro de dados?"*?
 
 Itens práticos:
 
-- [ ] Acertei — ou entendi por que errei — a previsão do painel de vendas (seção 4).
+- [x] Acertei — ou entendi por que errei — a previsão do painel de vendas (seção 4).
 - [ ] Fiz a tradução de uma vaga real (seção 9).
-- [ ] Fiz os exercícios de Aquecimento e Aplicação.
+- [x] Fiz os exercícios de Aquecimento e Aplicação.
 - [ ] Completei o mini projeto "Dossiê de vagas v0" (4 requisitos).
-- [ ] Registrei a sessão no `PROGRESSO.md` e agendei as 4 revisões deste capítulo.
+- [x] Registrei a sessão no `PROGRESSO.md` e agendei as 4 revisões deste capítulo.
 
 ---
 
