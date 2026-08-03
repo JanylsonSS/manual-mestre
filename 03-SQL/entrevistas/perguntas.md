@@ -189,3 +189,49 @@ Pontos da saída forte, em três movimentos:
 3. **O que separa** — mesmo com ordenação total, uma **inserção** entre as duas consultas desloca tudo e o sintoma volta; a solução definitiva é **paginação por cursor**;
 4. Por que sobrevive: exige movimento de dados, e ambientes de teste são estáticos.
 </details>
+
+### P-03.05-01 `[conceitual · júnior]` — Qual a diferença entre `COUNT(*)` e `COUNT(coluna)`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `COUNT(*)` conta **linhas**; `COUNT(coluna)` conta **valores não nulos** daquela coluna;
+2. Divergem quando a coluna tem nulos — e a diferença **é** a quantidade de nulos;
+3. Daí a técnica de auditoria: `COUNT(*) - COUNT(coluna)`;
+4. Terceira variante: `COUNT(DISTINCT coluna)`, que também ignora nulos.
+</details>
+
+### P-03.05-02 `[código · júnior]` — O que `SUM` devolve quando nenhuma linha passa pelo filtro?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. **`NULL`**, não zero — não havia nada para somar;
+2. `COUNT` no mesmo caso devolve **0** — é o único ponto em que as funções divergem;
+3. Correção prática: `COALESCE(SUM(...), 0)` em toda soma de relatório;
+4. A ressalva madura: para `AVG`, `MIN` e `MAX`, substituir por zero costuma ser **errado** — média de nada não é média zero.
+</details>
+
+### P-03.05-03 `[conceitual · pleno]` — Como o `AVG` trata valores nulos?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Ignora — no numerador **e no denominador**; a média é dos valores preenchidos;
+2. Se a regra de negócio disser que ausência é zero, seja explícito: `AVG(COALESCE(col, 0))`;
+3. A escolha do denominador é decisão **de negócio**, não de sintaxe;
+4. Boa prática: publicar toda média com o `COUNT` correspondente — média sem amostra esconde a decisão.
+</details>
+
+### P-03.05-04 `[pegadinha · pleno]` — Numa consulta com junção, a soma saiu certa e a contagem saiu inflada. Por quê?
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: exige entender o que a junção faz com as **linhas**, não com os valores.
+
+Pontos da saída forte:
+1. A junção produz **uma linha por item**; um pedido com 3 itens aparece 3 vezes;
+2. Para a **soma** isso é o desejado — cada item é somado uma vez, e o total sai correto;
+3. Para a **contagem de pedidos** é errado: `COUNT(*)` conta linhas da junção → use `COUNT(DISTINCT p.id)`;
+4. O padrão geral: cada agregação opera num **nível de granularidade**; misturar granularidades numa consulta só é a origem do "somar duas vezes". Quando duas são necessárias, separe em CTEs (03.10).
+</details>
