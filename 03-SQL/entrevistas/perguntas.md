@@ -95,3 +95,51 @@ Pontos da saída forte — os três caminhos e seus custos:
 3. **Anonimizar** é o caminho usado: manter a linha e o `id`, substituir dados pessoais por marcadores, registrar a data;
 4. O fecho maduro: é decisão de negócio com apoio jurídico (a LGPD prevê retenção para obrigação legal), não escolha de quem escreve o SQL.
 </details>
+
+### P-03.03-01 `[conceitual · júnior]` — Qual a diferença entre `WHERE x = NULL` e `WHERE x IS NULL`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `= NULL` é sempre **desconhecido**, nunca verdadeiro — devolve zero linhas mesmo havendo nulos;
+2. `IS NULL` é o operador dedicado à ausência de valor;
+3. SQL usa lógica de **três valores**: verdadeiro, falso, desconhecido;
+4. O `WHERE` só deixa passar o **verdadeiro** — falso e desconhecido têm o mesmo destino.
+</details>
+
+### P-03.03-02 `[pegadinha · pleno]` — Você filtra `WHERE status <> 'cancelado'` e as contagens não fecham. Por quê?
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: o bug é **silencioso** — a consulta roda e devolve um resultado plausível.
+
+Pontos da saída forte:
+1. Linhas com `status` nulo não passam: `NULL <> 'cancelado'` é desconhecido;
+2. Correção na consulta: `WHERE status <> 'cancelado' OR status IS NULL`;
+3. O caso mais grave é `NOT IN` com nulos na lista — devolve **zero linhas**, sempre;
+4. A defesa estrutural: declarar `NOT NULL` sempre que possível, eliminando a classe de problema.
+</details>
+
+### P-03.03-03 `[código · júnior]` — Por que evitar `SELECT *` em código de produção?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Traz colunas não usadas — custo de leitura, memória e rede;
+2. **Quebra em silêncio** quando a tabela muda (coluna acrescentada ou reordenada);
+3. Impede índices que cobririam a consulta inteira;
+4. Em exploração manual é apropriado — a crítica é sobre código que fica.
+</details>
+
+### P-03.03-04 `[pegadinha · pleno]` — `WHERE cidade = 'campinas' OR cidade = 'santos' AND ativo = 1` — o que está errado?
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: a consulta é **sintaticamente válida** e roda — é esse o problema.
+
+Pontos da saída forte:
+1. `AND` tem precedência: lê-se `cidade = 'campinas' OR (cidade = 'santos' AND ativo = 1)`;
+2. Resultado: **todos** os de Campinas (inclusive inativos) e só os ativos de Santos;
+3. O segundo movimento — **não dá para saber a intenção olhando o código**; o problema real é a ambiguidade, e a correção é usar parênteses sempre;
+4. Bônus integrador: se `ativo` aceitar `NULL`, há um terceiro problema — as linhas com `ativo` nulo somem do segundo ramo.
+</details>
