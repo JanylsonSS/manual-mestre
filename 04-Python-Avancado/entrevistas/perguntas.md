@@ -47,3 +47,69 @@ def cronometrar(f, *args, **kwargs):
 **O benefício que quase ninguém cita:** parâmetros keyword-only podem ser **acrescentados em qualquer posição** sem quebrar chamadas existentes, porque a ordem entre eles é irrelevante para o chamador. Numa API que evolui, isso vale mais que a legibilidade.
 
 **E o irmão raro:** `/` marca positional-only, e serve a quem publica biblioteca — libera renomear o parâmetro depois, já que ninguém podia usar o nome. Por isso aparece em embutidas: `len(obj, /)`.
+
+### P5 — "Qual a diferença entre `f` e `f()`?" `[conceitual — parece básica e separa]`
+
+`f` é o **objeto-função**; `f()` é o **resultado** de executá-la. Os parênteses são o operador de chamada.
+
+**A consequência prática:** `sorted(dados, key=len)` funciona; `sorted(dados, key=len())` dá `TypeError: len() takes exactly one argument (0 given)` — a função foi chamada na hora de montar o argumento.
+
+**O que fecha a resposta:** funções são objetos de primeira classe em Python. Têm atributos (`__name__`, `__doc__`), aceitam atributos novos, e cabem em variáveis, listas e dicionários — é o que torna possível `key=`, decoradores e despacho.
+
+### P6 — "`key=` é chamada quantas vezes ao ordenar `n` elementos?" `[conceitual — a maioria erra]`
+
+**`n` vezes — uma por elemento**, não a cada comparação. O Python calcula todas as chaves primeiro e ordena os pares (*decorate-sort-undecorate*). Medido: 1000 elementos, 1000 chamadas; uma função de comparação rodaria ~9965.
+
+**Por que importa:** uma `key` cara é aceitável. Mas uma `key` que consulta banco faz **`n` consultas** — erro que só aparece quando a lista cresce.
+
+**O bônus:** `sorted` é **estável**, o que permite ordenar por vários critérios em passadas sucessivas, do menos importante para o mais. É a única saída quando um critério de texto precisa ser decrescente, já que `-"abc"` é `TypeError`.
+
+### P7 — "Como você substituiria um `if/elif` de dez casos?" `[julgamento]`
+
+**Despacho por dicionário:** `ACOES = {"nome": funcao}` e `ACOES[chave](args)`.
+
+**O ganho real é o ponto de alteração**, não a velocidade: acrescentar um caso é acrescentar uma chave, em vez de editar uma função que cresce indefinidamente. E os casos viram **dados** — dá para listá-los, o que permite gerar a mensagem de erro a partir do próprio dicionário, sempre atualizada.
+
+**O custo, que a boa resposta menciona:** o dicionário só casa **igualdade exata** — nada de `elif x > 10`. E a chave ausente precisa de tratamento explícito: `.get()` que devolve `None` seguindo viagem é pior que a cadeia de `if` com `else`.
+
+### P8 — "Quando usar `lambda`?" `[julgamento — termômetro de maturidade]`
+
+**Expressão curta passada como argumento e descartada em seguida** — `key=`, `sorted`, `map`.
+
+**O sinal de que passou do ponto:** `funcao = lambda x: ...`. Atribuir a um nome entrega o pior dos dois mundos: a limitação de uma única expressão, sem docstring, e com `<lambda>` no traceback. O PEP 8 desaconselha explicitamente.
+
+**O exemplo concreto que impressiona:** num pipeline que reporta qual etapa falhou, `getattr(etapa, "__name__")` devolve `<lambda>` para todas as etapas anônimas — você sabe que falhou a segunda pelo número, não pelo nome. É a razão prática de etapas nomeadas usarem `def`.
+
+### P9 — "O que é uma closure?" `[conceitual]`
+
+Uma função **mais** o ambiente em que ela nasceu. Quando uma função interna usa uma variável do escopo externo, essa variável sobrevive ao fim da função externa, guardada numa **célula**.
+
+**A resposta que mostra que você já olhou por dentro:** `f.__code__.co_freevars` dá os nomes das variáveis livres; `f.__closure__[0].cell_contents` dá o valor guardado. Não é mágica — é um objeto acessível.
+
+**O detalhe que separa:** a closure guarda a **variável**, não o valor. Reatribuir a variável depois de criar a closure faz a closure ver o valor novo.
+
+### P10 — "O que imprime `[lambda: i for i in range(3)]`?" `[previsão — clássica]`
+
+**`[2, 2, 2]`.** O laço cria **uma** variável e a reatribui; os três lambdas apontam para a mesma célula, lida na **chamada**, não na criação.
+
+**A prova que impressiona:** os mesmos lambdas, chamados **dentro** do laço, devolvem `[0,1,2]`. Isso mostra que o problema não é a captura — é o momento da leitura.
+
+**As duas correções, com o custo de cada uma:** `lambda i=i:` congela no default, mas a assinatura ganha um parâmetro que ninguém deveria passar (`f(99)` devolve 99). Uma fábrica cria um escopo novo por chamada — mais verbosa e honesta. Em código compartilhado, fábrica.
+
+**O bônus:** em JavaScript, `let` num `for` cria uma variável por iteração e o mesmo código dá `[0,1,2]`. Decisões de projeto diferentes, não uma certa e outra errada.
+
+### P11 — "Para que serve `nonlocal`?" `[conceitual — a assimetria pega gente]`
+
+Permite **atribuir** a uma variável do escopo envolvente. É irmão de `global`, mas para a função de fora, não para o módulo.
+
+**A assimetria que quase ninguém enuncia:** **ler** não exige `nonlocal`; **atribuir** exige. E a distinção real não é sobre o tipo do objeto — é sobre variável contra objeto. `lista.append(1)` **muta o objeto** e funciona sem declaração; `lista = [1]` **reatribui a variável** e precisa.
+
+**Por que atribuir exige:** qualquer atribuição, em qualquer ponto do corpo, torna o nome local à função **inteira** — então `n += 1` lê uma variável local que ainda não tem valor: `UnboundLocalError`.
+
+### P12 — "Closure ou classe?" `[julgamento]`
+
+Uma operação com pouco estado, closure. Mais de uma operação sobre o mesmo estado, classe.
+
+**O exemplo que torna o critério concreto:** um contador em closure não dá para **ler sem incrementar** nem zerar. Acrescentar essas operações exige devolver um dicionário de funções — e aí você tem um objeto montado à mão, com `c["inc"]()` no lugar de `c.incrementar()`, sem `AttributeError` útil quando o nome está errado, sem docstring e sem `__repr__`.
+
+**O critério afiado:** não é o número de operações, é se elas são chamadas em **ordem arbitrária e repetidamente**. Duas operações com fluxo fixo (acumula muitas vezes, lê uma) cabem numa closure.
