@@ -155,3 +155,37 @@ def repetir(vezes):            # fábrica
 **O caso que mostra que a ordem não é estética:** `@cache` acima de `@autenticar` serve o resultado cacheado **sem passar pela autenticação** — qualquer pessoa recebe o dado de quem pediu antes. É falha de segurança, não otimização.
 
 **O segundo caso, mais sutil:** `@cronometrar` acima de `@cache` mede os acertos de cache (quase zero) e afunda a média, escondendo o custo real. Invertido, mede só o cálculo. Nenhuma das ordens é universalmente certa — elas respondem perguntas diferentes: "quanto o chamador espera?" contra "quanto custa calcular?".
+
+### P17 — "Qual a diferença entre iterável e iterador?" `[conceitual]`
+
+**Iterável** tem `__iter__` e produz um percorredor novo a cada chamada. **Iterador** tem `__iter__` **e** `__next__`, guarda a posição, e o `__iter__` dele devolve **ele mesmo**.
+
+**A prova em uma linha:** `iter(lista) is iter(lista)` é `False` (dois percorredores independentes); `iter(it) is it` é `True`.
+
+**A consequência prática:** iteradores **esgotam**. `map`, `filter`, `zip`, `enumerate`, geradores e **arquivos abertos** só servem uma vez, e a segunda passada devolve vazio **sem erro nenhum** — o que produz relatórios com metade dos dados e médias que estouram em divisão por zero.
+
+### P18 — "O que o `for` faz por baixo?" `[conceitual]`
+
+Três coisas: chama `iter(objeto)`, chama `next(iterador)` em laço, e para quando vier `StopIteration` — que ele captura silenciosamente.
+
+**Se você escrever as cinco linhas equivalentes** (`while True` com `try/except StopIteration: break`), respondeu completamente.
+
+**O detalhe que impressiona:** `StopIteration` é uma **exceção usada como sinal de controle**, não como erro. A alternativa seria um valor sentinela, que poderia colidir com um dado real — não há valor algum que não possa aparecer legitimamente numa coleção.
+
+### P19 — "Por que `map` esgota e `range` não?" `[previsão — pega generalização apressada]`
+
+`map` é **iterador** (tem `__next__`, guarda posição). `range` é **iterável** — guarda início, fim e passo, e cria um iterador novo a cada `for`.
+
+**A frase que separa:** preguiça e esgotamento são propriedades **independentes**. `range(10**9)` é preguiçoso (ocupa dezenas de bytes) e reutilizável; `map` é preguiçoso e esgotável; uma lista não é preguiçosa e é reutilizável. Quem trata "preguiçoso" e "esgota" como sinônimos erra em `range`.
+
+**O caso prático que vale citar:** arquivo aberto é iterador. Percorrê-lo duas vezes devolve vazio na segunda, e é a causa mais comum de "o relatório saiu pela metade".
+
+### P20 — "Como você escreveria uma classe percorrível?" `[caso prático]`
+
+`__iter__` devolvendo um **iterador novo** — e o iterador é outra classe, com `__next__` e a posição.
+
+**Por que não devolver `self`:** com uma classe só, a segunda passada vem vazia, e dois `for` aninhados sobre o mesmo objeto devolvem **um** par em vez de `n²`, porque o laço interno consome o que o externo ia visitar. Você construiu um `map`, não uma coleção.
+
+**O teste que prova o projeto:** criar dois iteradores simultâneos e intercalar `next` — os dois devem avançar independentemente.
+
+**O bônus:** implementar `__iter__` torna a classe compatível com `for`, `list()`, `sum()`, `in` e compreensões **de uma vez** — todos chamam `iter()` internamente.
