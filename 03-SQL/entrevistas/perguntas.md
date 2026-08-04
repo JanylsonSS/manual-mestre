@@ -235,3 +235,49 @@ Pontos da saída forte:
 3. Para a **contagem de pedidos** é errado: `COUNT(*)` conta linhas da junção → use `COUNT(DISTINCT p.id)`;
 4. O padrão geral: cada agregação opera num **nível de granularidade**; misturar granularidades numa consulta só é a origem do "somar duas vezes". Quando duas são necessárias, separe em CTEs (03.10).
 </details>
+
+### P-03.06-01 `[conceitual · pleno]` — Qual a diferença entre `WHERE` e `HAVING`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `WHERE` filtra **linhas antes** do agrupamento e **não** pode usar agregações;
+2. `HAVING` filtra **grupos depois** da agregação e **pode**;
+3. A justificativa vem da ordem de execução: `FROM` → `WHERE` → `GROUP BY` → `HAVING`;
+4. Quando a condição serve nos dois, prefira o `WHERE` — ele reduz o volume que chega ao agrupamento.
+</details>
+
+### P-03.06-02 `[código · pleno]` — Por que `SELECT categoria, nome, COUNT(*) FROM produtos GROUP BY categoria` dá erro?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `nome` não está no `GROUP BY` nem dentro de agregação — a regra de ouro;
+2. O grupo tem vários nomes; não há como escolher um, e a pergunta não tem resposta;
+3. **Alguns bancos aceitam** (SQLite, MySQL permissivo) devolvendo valor arbitrário — pior que o erro, porque o resultado parece correto;
+4. Correção conforme a intenção: `MIN(nome)`, agrupar também por `nome`, ou subconsulta/função de janela se quiser a linha do máximo.
+</details>
+
+### P-03.06-03 `[conceitual · pleno]` — O que acontece com valores `NULL` num `GROUP BY`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Formam **um grupo próprio** — todos os nulos juntos, visíveis como uma linha do resultado;
+2. Contrasta com o `WHERE`, onde o `NULL` é descartado; coincide com o `DISTINCT`;
+3. Consequência prática: relatórios agrupados mostram uma linha vazia quando há nulos;
+4. A decisão de exibir, excluir (`WHERE ... IS NOT NULL`) ou rotular (`COALESCE`) deve ser **explícita**.
+</details>
+
+### P-03.06-04 `[pegadinha · pleno]` — "Categorias com mais de 3 produtos, considerando apenas os ativos, ordenadas pelo faturamento." Escreva.
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: é ordem de execução **aplicada**, e os três erros típicos são silenciosos ou confusos.
+
+Pontos da saída forte:
+1. `WHERE ativo = 1` (linha) → `GROUP BY categoria` → `HAVING COUNT(*) > 3` (grupo) → `ORDER BY`;
+2. Erro típico 1: `ativo = 1` no `HAVING` — funciona em alguns bancos, é mais lento e engana o leitor;
+3. Erro típico 2: `COUNT(*) > 3` no `WHERE` — erro de verdade, a agregação ainda não existe;
+4. **O movimento que impressiona**: perguntar antes se "mais de 3 produtos" conta só os ativos ou todos — a mesma frase em português comporta duas consultas diferentes.
+</details>
