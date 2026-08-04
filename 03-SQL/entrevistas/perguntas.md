@@ -373,3 +373,53 @@ Pontos da saída forte, em três tempos:
 3. **A correção** — mover a condição para o `ON` com `AND`;
 4. **A generalização** — num `LEFT JOIN`, toda condição sobre a direita pertence ao `ON`; a exceção é o `IS NULL` do anti-join, que precisa do `WHERE` porque testa o `NULL` fabricado. Bônus: o otimizador chega a converter a consulta em `INNER` internamente — o banco não erra, obedece.
 </details>
+
+### P-03.09-01 `[conceitual · pleno]` — Qual a diferença entre subconsulta correlacionada e não correlacionada?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. A não correlacionada **não menciona** a consulta externa e roda **uma vez**;
+2. A correlacionada menciona um apelido de fora e é avaliada **por linha externa**;
+3. Um exemplo de cada uma vale mais que a definição;
+4. A ressalva madura: otimizadores reescrevem `EXISTS` correlacionado como semi-junção — o caso realmente caro é a correlacionada **com agregação no `SELECT`**.
+</details>
+
+### P-03.09-02 `[código · pleno]` — Por que preferir `NOT EXISTS` a `NOT IN`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `NOT IN` com um `NULL` na lista devolve **zero linhas**, sempre;
+2. O mecanismo: `x NOT IN (a, NULL)` vira uma conjunção que inclui `x <> NULL`, **desconhecido**;
+3. `NOT EXISTS` não compara valores, apenas verifica existência — é imune;
+4. O bug é **silencioso**: nenhum erro, resultado plausível, e aparece meses depois quando o primeiro nulo entra.
+</details>
+
+### P-03.09-03 `[decisão · pleno]` — Quando usar `JOIN` e quando usar subconsulta?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `JOIN` quando precisa de **colunas** da outra tabela;
+2. `EXISTS` quando precisa apenas **verificar** — e sem multiplicar linhas (dispensa `DISTINCT`);
+3. Subconsulta no `FROM` para agregação em **dois níveis** (ticket médio);
+4. Subconsulta no `SELECT` quando há **duas** tabelas filhas a agregar — a junção as multiplicaria (03.07).
+</details>
+
+### P-03.09-04 `[pegadinha · sênior]` — Esta consulta funcionou por dois anos e hoje devolve zero linhas. Nada no código mudou.
+
+<details><summary>Resposta esperada</summary>
+
+```sql
+SELECT * FROM produtos WHERE id NOT IN (SELECT produto_id FROM itens_pedido);
+```
+
+Por que derruba: a informação decisiva **não está na consulta**, está nos dados.
+
+Pontos da saída forte:
+1. **A hipótese** — apareceu um `NULL` em `produto_id`;
+2. **O mecanismo** — `NOT IN` vira conjunção de desigualdades; `id <> NULL` é desconhecido, e nenhuma linha passa;
+3. **O diagnóstico** — `SELECT COUNT(*) FROM itens_pedido WHERE produto_id IS NULL`;
+4. **As correções, em ordem** — reescrever com `NOT EXISTS`; filtrar `IS NOT NULL` na subconsulta; declarar a coluna `NOT NULL` (03.13). E o movimento final: a consulta **sempre esteve errada**, apenas não tinha como se manifestar.
+</details>
