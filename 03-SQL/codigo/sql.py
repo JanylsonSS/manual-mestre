@@ -67,7 +67,9 @@ def executar(conexao, comando):
     cursor.execute(comando)
 
     if cursor.description is None:          # INSERT/UPDATE/DELETE/DDL
-        conexao.commit()
+        # Sem commit() aqui: a conexão está em autocommit (veja main()),
+        # então cada comando já vale sozinho — e BEGIN/ROLLBACK escritos
+        # por você funcionam como funcionariam num cliente de verdade.
         return f"OK. Linhas afetadas: {cursor.rowcount}"
 
     linhas = cursor.fetchall()
@@ -94,6 +96,10 @@ def main():
         sys.exit(1)
 
     conexao = sqlite3.connect(BANCO)
+    # isolation_level=None desliga o gerenciamento automático de transações
+    # do driver Python. Sem isso, ele abriria uma transação por conta própria
+    # e o seu ROLLBACK não teria o que desfazer (03.11, 03.15).
+    conexao.isolation_level = None
     conexao.execute("PRAGMA foreign_keys = ON")     # o SQLite exige ligar (03.13)
 
     try:

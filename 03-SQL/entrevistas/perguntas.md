@@ -423,3 +423,85 @@ Pontos da saída forte:
 3. **O diagnóstico** — `SELECT COUNT(*) FROM itens_pedido WHERE produto_id IS NULL`;
 4. **As correções, em ordem** — reescrever com `NOT EXISTS`; filtrar `IS NOT NULL` na subconsulta; declarar a coluna `NOT NULL` (03.13). E o movimento final: a consulta **sempre esteve errada**, apenas não tinha como se manifestar.
 </details>
+
+### P37 — "Qual a diferença entre uma CTE e uma subconsulta no `FROM`?" `[conceitual]`
+
+**O que testam:** se você entende que a diferença é de **legibilidade e reuso**, não de semântica.
+
+**Resposta forte, em três movimentos:**
+1. **Resultado:** idêntico. A mesma consulta escrita das duas formas devolve o mesmo valor, ao último dígito.
+2. **Leitura:** a subconsulta se lê **de dentro pra fora**; a CTE, **de cima pra baixo**, como um roteiro de etapas nomeadas.
+3. **Reuso:** a CTE pode ser referenciada **mais de uma vez** no mesmo comando; a tabela derivada teria que ser reescrita — e reescrita significa duas cópias que precisam mudar juntas.
+
+**O que não dizer:** "CTE é mais rápida". Não é uma propriedade da CTE. Em alguns bancos e versões ela chegou a ser uma barreira de otimização (o PostgreSQL materializava CTEs até a versão 12). Desempenho se mede (03.14), não se supõe.
+
+### P38 — "Quando você **não** usaria uma CTE?" `[julgamento]`
+
+**O que testam:** se você aplica a ferramenta por critério ou por hábito.
+
+**Resposta forte:** em consultas de **uma etapa só** — não há etapa para nomear, e a CTE só acrescenta duas linhas de ruído. O sinal de que ela **vale** a pena é o oposto: etapas conceituais distintas, a mesma etapa usada duas vezes, ou duas tabelas filhas do mesmo pai.
+
+**O teste do nome, que impressiona:** "se o único nome honesto para o bloco é `temp` ou `dados`, o bloco não é uma etapa. E se preciso de 'e' no nome — `clientes_e_pedidos_e_totais` — ele faz coisas demais e deveria ser duas CTEs." É o mesmo critério de quando extrair uma função.
+
+### P39 — "Você tem pedidos com itens e com pagamentos. Como calcula os dois totais na mesma consulta?" `[caso prático — o clássico]`
+
+**Por que é clássico:** é a armadilha do 03.07 numa roupa nova, e derruba muita gente sênior.
+
+**A resposta errada** — juntar as duas filhas direto ao pai e somar: cada item se combina com cada pagamento, e **as duas somas inflam**.
+
+**A resposta forte:** uma CTE por filha, cada uma agregando ao nível de `pedido_id`; depois `LEFT JOIN` das duas ao pedido, com `COALESCE` para quem não tem pagamento.
+
+**O movimento que fecha:** citar a verificação. "Eu confiro somando as duas fontes separadamente e comparando com o resultado da junção — em centavos, nunca em reais. Se baterem, nenhuma linha multiplicou."
+
+### P40 — "O relatório está somando o dobro desde ontem. Como você investiga?" `[depuração — pergunta aberta]`
+
+**O que testam:** método, não memória.
+
+**A sequência que impressiona:**
+1. **Confirmar o dobro exato.** Se for exatamente 2×, é multiplicação de linhas; se for um fator irregular, é outra coisa (dado duplicado na origem, filtro perdido).
+2. **Contar antes de somar.** `SELECT COUNT(*)` na junção contra `COUNT(*)` na tabela base: se a junção tem mais linhas, achou o ponto.
+3. **Perguntar o que mudou ontem.** Uma tabela filha nova na junção? Uma linha duplicada numa tabela que era 1:1 e virou 1:N sem ninguém avisar?
+4. **Corrigir na raiz** — agregar cada filha na sua CTE — em vez de dividir por dois.
+5. **Deixar a checagem no lugar:** uma consulta de conferência que compara o total pela junção com o total pela fonte, rodada junto com o relatório.
+
+**O que derruba:** propor `DISTINCT` como primeira medida. `DISTINCT` esconde a multiplicação em contagens e **não corrige somas** — e ainda apaga duplicatas legítimas.
+
+### P41 — "Você precisa corrigir o e-mail de um cliente em produção. Descreva o que você faz." `[procedimento]`
+
+**O que testam:** não é a sintaxe do `UPDATE` — é se você tem procedimento ou improvisa.
+
+**A resposta forte é uma sequência, não um comando:**
+1. `SELECT id, nome, email FROM clientes WHERE id = ...` — **anotar o valor antigo** (é o que torna a operação reversível);
+2. confirmar que devolve **uma** linha;
+3. `BEGIN`;
+4. `UPDATE ... WHERE id = ...` pela **chave primária**, nunca por nome ou e-mail;
+5. conferir `Linhas afetadas: 1`;
+6. `SELECT` de verificação **dentro** da transação;
+7. `COMMIT`.
+
+**O detalhe que separa:** filtrar pela chave primária, e não por `WHERE email = 'antigo@...'`. Duas pessoas podem ter o mesmo e-mail cadastrado por engano — e é justamente quando há um engano no cadastro que você está mexendo ali.
+
+### P42 — "Qual a diferença entre `DELETE` e `TRUNCATE`?" `[conceitual]`
+
+**Resposta forte:** `DELETE` aceita `WHERE`, remove linha a linha, dispara verificação de chave estrangeira e é transacional — dá para desfazer. `TRUNCATE` esvazia a tabela inteira de uma vez, é muito mais rápido em tabelas grandes, e em vários bancos **não é revertível por `ROLLBACK`** (no PostgreSQL é; no MySQL com InnoDB, não). O SQLite não tem `TRUNCATE`.
+
+**O que impressiona:** dizer que a diferença de reversibilidade **varia por banco** e que você verificaria antes de usar em produção. Quem afirma categoricamente "TRUNCATE não pode ser desfeito" está certo com frequência e errado o suficiente.
+
+### P43 — "O que é *soft delete* e quando você usaria?" `[julgamento]`
+
+**Resposta forte:** marcar a linha como inativa (`ativo = 0`, `deleted_at = <data>`) em vez de removê-la. Use quando o dado aparece em histórico, relatório fechado ou obrigação legal — o que é quase sempre em dados de negócio.
+
+**O contraponto que mostra maturidade:** *soft delete* tem custo. Toda consulta passa a precisar de `WHERE ativo = 1`, e **a que esquecer vai mostrar dados que não deveriam aparecer**. Índices crescem com linhas que ninguém consulta. E ele **não** satisfaz um pedido de exclusão sob a LGPD — para isso a resposta é anonimizar, preservando a linha e destruindo o dado pessoal.
+
+### P44 — "Rodei um `UPDATE` sem `WHERE` em produção. O que você faz agora?" `[comportamental sob pressão]`
+
+**O que testam:** frieza e honestidade, não conhecimento.
+
+**A sequência que impressiona:**
+1. **Parar de escrever.** Nenhum comando novo — sobretudo nenhum `UPDATE` "de correção" improvisado, que costuma piorar.
+2. **Verificar se há transação aberta.** Se houver, `ROLLBACK` e acabou.
+3. **Se já foi confirmado: avisar imediatamente.** Antes de tentar consertar, não depois.
+4. **Avaliar a recuperação** — backup, log de transações, ou *point-in-time recovery* — e quanto tempo cada opção leva.
+5. **Depois de resolvido, o post-mortem sem culpado:** por que era possível rodar aquilo direto em produção?
+
+**O que derruba:** dizer que tentaria consertar sozinho antes de avisar. E dizer que isso nunca aconteceria com você.

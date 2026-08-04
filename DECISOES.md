@@ -71,3 +71,13 @@ Decisões tomadas durante a geração que a especificação não cobria (§34.3)
 **Contexto:** o mapa da spec põe a modelagem no 03.16, mas os capítulos 03.03 a 03.10 precisam de dados para consultar desde o início.
 **Decisão:** o 03.01 entrega o schema da Aurora **pronto e populado** (clientes, produtos, pedidos, itens_pedido — 71 linhas), com casos de ensino embutidos de propósito: um cliente sem compras (anti-join, 03.08), um e-mail `NULL` (03.03), uma cidade `NULL` (03.05), um produto nunca vendido (03.08) e pedidos cancelado/pendente (filtros, 03.03). O aluno **consulta** um schema existente antes de **projetar** o próprio.
 **Consequência:** o 03.16 reconstrói o mesmo schema do zero, agora justificando cada decisão — o aluno compara a própria modelagem com a que usou por quinze capítulos. O arquivo `.db` é gerado, nunca versionado (`*.db` já está no `.gitignore`).
+
+## D-015 — 2026-08-04 — Banco de rascunho para os capítulos de escrita
+**Contexto:** a partir do 03.11 os comandos alteram dados. Os gabaritos de 03.01 a 03.10 comparam com os números exatos de `aurora.db`, e um único `UPDATE` do aluno invalidaria todos eles.
+**Decisão:** `codigo/cap11/preparar_rascunho.py` copia `aurora.db` para `dados/rascunho.db`, e todo exercício de escrita roda com `AURORA_BANCO=dados/rascunho.db`. O script é idempotente: rodá-lo de novo recomeça limpo.
+**Consequência:** o aluno pode destruir o banco de propósito — e é instruído a fazê-lo, no AP3 do 03.11. A separação também ensina, por analogia direta, a distinção entre ambiente de teste e produção, que volta no módulo 09. Ambos os `.db` são gerados, nunca versionados.
+
+## D-016 — 2026-08-04 — Executor em autocommit explícito
+**Contexto:** o `codigo/sql.py` chamava `conexao.commit()` após cada comando de escrita, e o driver `sqlite3` do Python abria transações por conta própria. Consequência: um `ROLLBACK` escrito pelo aluno não desfazia nada — a demonstração central do 03.11 falhava em silêncio.
+**Decisão:** `conexao.isolation_level = None` (autocommit), e remoção do `commit()` automático. Cada comando vale sozinho; `BEGIN`/`COMMIT`/`ROLLBACK` escritos pelo aluno funcionam como funcionariam num cliente real.
+**Consequência:** o comportamento do laboratório passa a corresponder ao que o capítulo ensina. A própria correção virou conteúdo: o 03.11 §6.7 explica que toda ferramenta tem uma política de transação e que descobri-la é pré-requisito para confiar num `ROLLBACK`. Regressão dos capítulos 03.01–03.10 executada — nenhuma mudança de saída.
