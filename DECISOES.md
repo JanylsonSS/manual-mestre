@@ -71,3 +71,28 @@ Decisões tomadas durante a geração que a especificação não cobria (§34.3)
 **Contexto:** o mapa da spec põe a modelagem no 03.16, mas os capítulos 03.03 a 03.10 precisam de dados para consultar desde o início.
 **Decisão:** o 03.01 entrega o schema da Aurora **pronto e populado** (clientes, produtos, pedidos, itens_pedido — 71 linhas), com casos de ensino embutidos de propósito: um cliente sem compras (anti-join, 03.08), um e-mail `NULL` (03.03), uma cidade `NULL` (03.05), um produto nunca vendido (03.08) e pedidos cancelado/pendente (filtros, 03.03). O aluno **consulta** um schema existente antes de **projetar** o próprio.
 **Consequência:** o 03.16 reconstrói o mesmo schema do zero, agora justificando cada decisão — o aluno compara a própria modelagem com a que usou por quinze capítulos. O arquivo `.db` é gerado, nunca versionado (`*.db` já está no `.gitignore`).
+
+## D-015 — 2026-08-04 — Banco de rascunho para os capítulos de escrita
+**Contexto:** a partir do 03.11 os comandos alteram dados. Os gabaritos de 03.01 a 03.10 comparam com os números exatos de `aurora.db`, e um único `UPDATE` do aluno invalidaria todos eles.
+**Decisão:** `codigo/cap11/preparar_rascunho.py` copia `aurora.db` para `dados/rascunho.db`, e todo exercício de escrita roda com `AURORA_BANCO=dados/rascunho.db`. O script é idempotente: rodá-lo de novo recomeça limpo.
+**Consequência:** o aluno pode destruir o banco de propósito — e é instruído a fazê-lo, no AP3 do 03.11. A separação também ensina, por analogia direta, a distinção entre ambiente de teste e produção, que volta no módulo 09. Ambos os `.db` são gerados, nunca versionados.
+
+## D-016 — 2026-08-04 — Executor em autocommit explícito
+**Contexto:** o `codigo/sql.py` chamava `conexao.commit()` após cada comando de escrita, e o driver `sqlite3` do Python abria transações por conta própria. Consequência: um `ROLLBACK` escrito pelo aluno não desfazia nada — a demonstração central do 03.11 falhava em silêncio.
+**Decisão:** `conexao.isolation_level = None` (autocommit), e remoção do `commit()` automático. Cada comando vale sozinho; `BEGIN`/`COMMIT`/`ROLLBACK` escritos pelo aluno funcionam como funcionariam num cliente real.
+**Consequência:** o comportamento do laboratório passa a corresponder ao que o capítulo ensina. A própria correção virou conteúdo: o 03.11 §6.7 explica que toda ferramenta tem uma política de transação e que descobri-la é pré-requisito para confiar num `ROLLBACK`. Regressão dos capítulos 03.01–03.10 executada — nenhuma mudança de saída.
+
+## D-017 — 2026-08-04 — Terceiro banco: `ddl.db` para os capítulos de estrutura
+**Contexto:** o 03.12 cria, altera e destrói tabelas. Fazer isso no `aurora.db` invalidaria os gabaritos de 03.01–03.11; fazer no `rascunho.db` do 03.11 misturaria "alterar dados" com "alterar estrutura", que são assuntos e riscos diferentes.
+**Decisão:** `codigo/cap12/preparar_ddl.py` cria `dados/ddl.db` **vazio**, apagando o anterior a cada execução. O script imprime a versão do SQLite e avisa se for anterior à 3.37, porque `STRICT` não existe antes disso.
+**Consequência:** o módulo passa a ter três bancos com papéis distintos — `aurora.db` (leitura, imutável), `rascunho.db` (escrita de dados), `ddl.db` (estrutura). A separação é ela mesma conteúdo: prefigura ambientes separados, do módulo 09. O aviso de versão evita que um leitor com SQLite antigo aprenda a lição errada ao ver `STRICT` falhar — o mesmo cuidado com mensagens de erro do 02.07.
+
+## D-018 — 2026-08-04 — Quarto banco: `indices.db` com 500.000 linhas, e o método de medição
+**Contexto:** o efeito de um índice não aparece em 71 linhas. Sem uma tabela grande, o 03.14 seria um capítulo de afirmações — exatamente o que a spec proíbe.
+**Decisão:** `codigo/cap14/preparar_indices.py` gera 500.000 eventos com `random.seed(42)` (números reproduzíveis) e quatro colunas de cardinalidade escolhida: `cliente_id` ~50.000 distintos, `valor` ~90.000, `data` 224, `tipo` 5. O `medir.py` acompanha, com três exigências de método: **conexão nova a cada medição**, **mediana** de 7 repetições, e medição **antes e depois**.
+**Consequência:** o capítulo demonstra em vez de afirmar, e o próprio método virou conteúdo. A exigência da conexão nova nasceu de um erro real: na primeira medição, o plano em cache fez parecer que o índice tornava a consulta mais lenta; com conexão nova, o resultado honesto é que ele não ajuda nem atrapalha naquele caso. O §6.8 registra o episódio — medição errada é pior que nenhuma, porque produz um número, e números convencem. Os quatro bancos do módulo (`aurora`, `rascunho`, `ddl`, `indices`) permanecem gerados e fora do Git.
+
+## D-019 — 2026-08-04 — Concorrência demonstrada com duas conexões, não com threads
+**Contexto:** o 03.15 precisa mostrar *lost update*, bloqueio e isolamento — fenômenos que exigem dois clientes simultâneos e não cabem num arquivo `.sql`, que tem um só.
+**Decisão:** `codigo/cap15/transacoes.py` abre duas conexões (`a` e `b`) e as intercala em **ordem explícita**, em vez de usar threads. Também usa `timeout=1.0` (o padrão de 5 s faria o leitor esperar cinco segundos para ver o `database is locked`) e repõe o saldo antes de cada cena.
+**Consequência:** o exemplo falha **toda vez**, e não às vezes. Com threads, o resultado dependeria do escalonador e a cena central do capítulo seria intermitente — um exemplo de concorrência que só falha de vez em quando ensina menos que um que falha sempre. O gabarito do D1 usa o mesmo princípio para argumentar por que um teste de concorrência que passa "quase sempre" é pior que nenhum: ele vira teste instável, é desabilitado, e o defeito segue em produção com a bênção da automação.
