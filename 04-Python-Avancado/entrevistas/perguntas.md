@@ -189,3 +189,33 @@ Três coisas: chama `iter(objeto)`, chama `next(iterador)` em laço, e para quan
 **O teste que prova o projeto:** criar dois iteradores simultâneos e intercalar `next` — os dois devem avançar independentemente.
 
 **O bônus:** implementar `__iter__` torna a classe compatível com `for`, `list()`, `sum()`, `in` e compreensões **de uma vez** — todos chamam `iter()` internamente.
+
+### P21 — "O que `yield` faz?" `[conceitual]`
+
+**Suspende** a função preservando todo o estado local — variáveis e ponto de execução — e devolve um valor. No próximo `next()`, retoma na linha seguinte. `return` encerra e descarta o estado.
+
+**O detalhe que separa:** chamar a função **não executa nada**. Ela devolve um objeto gerador, e o corpo só começa no primeiro `next()`. Consequência prática: uma validação escrita no topo do gerador dispara longe da chamada, e um `try/except` em volta dela não pega nada.
+
+**A correção do padrão:** função **normal** que valida e devolve o gerador de uma função interna privada.
+
+### P22 — "Qual a diferença entre `[x for x in y]` e `(x for x in y)`?" `[conceitual — com número]`
+
+Lista materializada contra gerador preguiçoso.
+
+**Com número:** um milhão de quadrados ocupa **40,3 MB** em lista e **0,0007 MB** em gerador — cerca de 56 000x. O gerador guarda só o estado da função suspensa.
+
+**A ressalva que mostra que você mediu:** o gerador **não** é sempre mais rápido. Somar uma lista já pronta é 4,4x mais rápido que somar um gerador sobre ela, porque cada valor custa uma retomada de quadro. Mas num pipeline de duas etapas o gerador ganha, porque não paga a alocação das listas intermediárias. **Há um cruzamento, não uma regra.**
+
+### P23 — "Como processar um arquivo de 50 GB?" `[caso prático]`
+
+Pipeline de geradores, uma passada, `with` para fechar o arquivo. Trocar colchetes por parênteses em cada etapa costuma ser a mudança inteira.
+
+**O cuidado que a boa resposta traz:** se você precisa de **duas** estatísticas (total e média, por exemplo), o pipeline preguiçoso quebra em silêncio — o primeiro `sum` consome tudo, o segundo conta zero, e vem `ZeroDivisionError` numa linha que está correta. A saída é acumular as duas na **mesma** passada.
+
+**O custo menos citado:** depurar pipeline preguiçoso é mais difícil. Um `print` no meio não roda até alguém consumir, e inspecionar um valor intermediário exige consumir o pipeline — o que o esgota. **Ganhar memória custa observabilidade.**
+
+### P24 — "Quando NÃO usar gerador?" `[julgamento]`
+
+Dados pequenos percorridos **várias** vezes (paga a produção a cada passada, e esgota na segunda); quando precisa de `len()` ou índice; e — o que quase ninguém cita — quando a coleção vai ser testada com `in` repetidamente: o gerador esgota no primeiro teste e passa a responder `False` para tudo. Aí a resposta certa nem é lista, é `set`.
+
+**E o caso arquitetural:** quando o **estado da iteração** faz parte da interface. Um leitor com retomada ("continue do bloco 47") precisa expor a posição, e o quadro congelado de um gerador é inacessível de fora. Duas classes — iterável e iterador — devolvem esse acesso.
