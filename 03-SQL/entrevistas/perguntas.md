@@ -327,3 +327,49 @@ Pontos da saída forte:
 3. Com **um** pagamento por pedido o resultado fica correto — o bug dorme até o primeiro parcelamento;
 4. Solução: agregar cada filho **separadamente**, com CTEs (03.10) ou subconsultas (03.09). Regra geral: duas tabelas filhas do mesmo pai não convivem numa junção quando há agregação.
 </details>
+
+### P-03.08-01 `[conceitual · júnior]` — Qual a diferença entre `INNER JOIN` e `LEFT JOIN`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. `INNER` mantém só os pares que satisfazem o `ON`; `LEFT` mantém **todas** as linhas da esquerda;
+2. Onde não há par, as colunas da direita vêm com `NULL` — fabricado pela junção, não presente nos dados;
+3. Consequência prática: com `INNER`, registros somem **sem aviso** e o relatório fica incompleto em silêncio;
+4. Detalhe de quem já usou: em `LEFT JOIN`, `COUNT(coluna_da_direita)` em vez de `COUNT(*)`.
+</details>
+
+### P-03.08-02 `[código · pleno]` — Como você encontra clientes que nunca compraram?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Anti-join: `LEFT JOIN pedidos p ON ... WHERE p.id IS NULL`;
+2. O `IS NULL` deve testar uma coluna que **nunca é nula** na tabela original — a chave primária;
+3. Se testar coluna que aceita nulos, mistura "não havia par" com "havia par com valor nulo";
+4. Alternativas: `NOT EXISTS` (segura) e `NOT IN` (arriscada — nulos na lista devolvem zero linhas, 03.03).
+</details>
+
+### P-03.08-03 `[conceitual · pleno]` — Por que `RIGHT JOIN` é raro na prática?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Todo `RIGHT` se reescreve como `LEFT` invertendo as tabelas;
+2. A convenção de pôr a tabela principal à esquerda torna a consulta muito mais legível, sobretudo com 3+ tabelas;
+3. Alguns bancos nem suportam — o SQLite só a partir da versão 3.39 (2022);
+4. `FULL OUTER` também é raro; o caso real é **conciliação** entre duas fontes, e emula-se com dois `LEFT` + `UNION`.
+</details>
+
+### P-03.08-04 `[pegadinha · pleno]` — O relatório deveria listar todos os clientes com pedidos concluídos, mas alguns sumiram. O `LEFT JOIN` está lá. Por quê?
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: a consulta **parece correta** — o `LEFT JOIN` está escrito e a intenção é evidente.
+
+Pontos da saída forte, em três tempos:
+1. **A ordem** — o `ON` monta os pares e preserva as linhas sem par; o `WHERE` age **depois**, sobre o resultado montado;
+2. **O efeito** — na linha preservada, `p.status` é `NULL`, e `NULL = 'concluido'` é **desconhecido**; o `WHERE` a descarta, e o `LEFT` virou `INNER`;
+3. **A correção** — mover a condição para o `ON` com `AND`;
+4. **A generalização** — num `LEFT JOIN`, toda condição sobre a direita pertence ao `ON`; a exceção é o `IS NULL` do anti-join, que precisa do `WHERE` porque testa o `NULL` fabricado. Bônus: o otimizador chega a converter a consulta em `INNER` internamente — o banco não erra, obedece.
+</details>
