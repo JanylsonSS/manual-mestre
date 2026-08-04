@@ -45,7 +45,7 @@ O fluxo de versionamento e sincronização entre máquinas está em [`CONTRIBUIN
 | 00 — Introdução | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet) | 5 / 5 |
 | 01 — Python Fundamental | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 25 / 25 |
 | 02 — Git e Linux | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 12 / 12 |
-| 03 — SQL | Em geração (visão do módulo + capítulos 03.01–03.11) | 11 / 16 |
+| 03 — SQL | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 16 / 16 |
 | 04–13 | Não iniciados | 0 |
 
 *Última atualização: 2026-08-04 · Gerado sob spec 3.0.0*

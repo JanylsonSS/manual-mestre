@@ -505,3 +505,164 @@ Pontos da saída forte:
 5. **Depois de resolvido, o post-mortem sem culpado:** por que era possível rodar aquilo direto em produção?
 
 **O que derruba:** dizer que tentaria consertar sozinho antes de avisar. E dizer que isso nunca aconteceria com você.
+
+### P45 — "Que tipo você usa para guardar dinheiro?" `[conceitual — a mais frequente do módulo]`
+
+**Resposta forte:** inteiro na menor unidade (centavos), ou `DECIMAL`/`NUMERIC` nos bancos em que ele é decimal exato — PostgreSQL, por exemplo. **Nunca `FLOAT`/`REAL`/`DOUBLE`.**
+
+**A justificativa que fecha a pergunta:** `0.1 + 0.2` devolve `0.30000000000000004`, e `0.1 + 0.2 = 0.3` é **falso**. Não é bug de banco: é o IEEE 754, e vale igual em Python, Java e JavaScript. Somado sobre milhares de linhas, o erro acumula de forma imprevisível.
+
+**A ressalva que impressiona:** no SQLite, `NUMERIC(10,2)` **não** é decimal exato — a precisão declarada é ignorada e o valor vira `REAL`. Quem migra de PostgreSQL confiando no mesmo nome tem uma surpresa cara.
+
+### P46 — "O que é afinidade de tipos?" `[conceitual — específica de SQLite]`
+
+**Resposta forte:** no SQLite o tipo pertence ao **valor**, não à coluna. A declaração é uma preferência: o banco converte quando dá e guarda como veio quando não dá.
+
+**Os exemplos que provam domínio:** `'abacaxi'` entra numa coluna `INTEGER` e fica como texto; `'42'` na mesma coluna vira o número 42; **`'3.7'` vira `real`, não `integer`**, porque a conversão para inteiro só ocorre sem perda. Três comportamentos na mesma coluna.
+
+**O fechamento:** desde a 3.37 existe `STRICT`, que recusa o inconversível e também tipos inventados — porque sim, `CREATE TABLE t (x BANANA)` é aceito numa tabela comum.
+
+### P47 — "Como você muda o tipo de uma coluna com 10 milhões de linhas em produção?" `[caso prático]`
+
+**O que testam:** se você sabe que não existe um comando para isso, e como pensa sobre operações longas.
+
+**A resposta forte:** não há `ALTER COLUMN` no SQLite, e mesmo onde existe (PostgreSQL) um `ALTER` dessa magnitude reescreve a tabela e a bloqueia. O caminho é: tabela nova com o tipo certo → cópia **em lotes** → sincronização das linhas que mudaram durante a cópia → troca de nome numa transação curta → manter a antiga por alguns dias antes de remover.
+
+**O detalhe que separa:** ao converter valores, `CAST` **trunca**. `CAST(19.99 * 100 AS INTEGER)` dá **1998**, não 1999, porque `19.99 * 100` é `1998.9999999999998`. Uma migração de dinheiro sem `ROUND` perde um centavo por linha, sem erro, em toda a base.
+
+### P48 — "Qual a diferença entre `CHAR`, `VARCHAR` e `TEXT`?" `[conceitual — pega quem decorou]`
+
+**Resposta forte, em duas partes.** Em bancos com tipos estritos: `CHAR(n)` é fixo e preenche com espaços à direita; `VARCHAR(n)` é variável com limite imposto; `TEXT` é variável sem limite. **No SQLite os três são a mesma coisa** — todos têm afinidade `TEXT`, e `VARCHAR(3)` guarda 26 caracteres sem reclamar.
+
+**O que impressiona:** dizer que a resposta depende do banco, e que confiar num `VARCHAR(n)` como validação é um erro em qualquer um deles — o limite de tamanho é regra de negócio e pertence a um `CHECK` ou à aplicação, onde pode devolver uma mensagem útil ao usuário.
+
+### P49 — "Qual a diferença entre `PRIMARY KEY` e `UNIQUE`?" `[conceitual]`
+
+**Resposta forte:** as duas garantem unicidade. `PRIMARY KEY` é uma só por tabela e implica `NOT NULL` na maioria dos bancos; `UNIQUE` pode haver várias e **aceita `NULL`**.
+
+**O detalhe que separa:** `UNIQUE` aceita **vários** nulos, não apenas um — porque `NULL = NULL` é desconhecido, então dois nulos nunca são detectados como duplicados. Consequência prática: um campo que precisa ser único **e** obrigatório exige `NOT NULL UNIQUE`, os dois. Só `UNIQUE` deixa a tabela encher de linhas sem valor, e a unicidade que você acha que tem não existe para elas.
+
+**Bônus específico de SQLite:** uma `PRIMARY KEY` de texto aceita `NULL` — furo antigo mantido por compatibilidade, que `STRICT` ou um `NOT NULL` explícito fecham.
+
+### P50 — "Onde você põe as regras de negócio: no banco ou na aplicação?" `[julgamento — não há resposta única]`
+
+**O que testam:** se você tem critério ou doutrina.
+
+**A resposta forte divide por criticidade,** com uma pergunta: *se essa regra for violada, dá para consertar depois?* Unicidade de identificadores, integridade referencial e faixas que quebram relatórios vão para o **banco** — violá-las corrompe dados de forma cara de desfazer. Limites por plano, promoções e permissões ficam na **aplicação** — mudam com frequência e um caso a mais não corrompe nada.
+
+**O argumento decisivo:** existe sempre mais de um caminho de escrita. O formulário valida; o script de importação, a API de parceiros e o analista com acesso direto não passam por ele. A restrição no banco é a única que vale para todos os caminhos, inclusive os que ainda não existem.
+
+**A ressalva que mostra maturidade:** bancos NoSQL frequentemente abrem mão dessas garantias em troca de escala e flexibilidade de schema — o que transfere a validação inteira para a aplicação. Não é errado; é uma troca, e saber o que se troca é o que distingue arquitetura de moda.
+
+### P51 — "Uma coluna `UNIQUE` está aceitando duplicatas. Como você investiga?" `[depuração]`
+
+**A sequência que impressiona:**
+1. **São `NULL`s?** É a causa mais frequente, e a mais invisível: `SELECT COUNT(*) - COUNT(coluna)` mostra quantos nulos há.
+2. **A restrição existe mesmo?** `SELECT sql FROM sqlite_master WHERE name = 't'` — muita "regra" mora só na cabeça do time.
+3. **É diferença de caixa ou espaço?** `'Ana@x.com'` e `'ana@x.com'` são valores distintos para o banco. `COLLATE NOCASE` ou normalização na escrita resolvem; espaços em branco no fim são o mesmo problema com outra roupa.
+4. **A unicidade é sobre uma coluna ou sobre um par?** "Uma inscrição por pessoa por curso" não é `UNIQUE(email)` — é `UNIQUE(email, curso)`. Quem procura o erro coluna a coluna nunca acha.
+
+### P52 — "O que acontece ao apagar um cliente que tem pedidos?" `[caso prático]`
+
+**Resposta forte:** depende da ação declarada na chave estrangeira. `RESTRICT`/`NO ACTION` recusa o `DELETE`; `CASCADE` apaga os pedidos junto; `SET NULL` deixa os pedidos órfãos com `cliente_id` nulo.
+
+**A escolha e o porquê:** para pedidos, `RESTRICT`. Histórico financeiro não deve sumir com um cadastro — e recusar é reversível, enquanto apagar não é.
+
+**O detalhe que quase ninguém traz:** `CASCADE` torna o alcance do comando **invisível**. O banco reporta `Linhas afetadas: 1` mesmo tendo removido dez, porque conta as linhas do comando e não as do efeito. Qualquer conferência baseada nesse número passa enquanto o histórico desaparece. Antes de um `DELETE` numa cadeia com `CASCADE`, o ensaio tem que contar os **descendentes**.
+
+### P53 — "O que é um índice e por que ele acelera?" `[conceitual]`
+
+**Resposta forte:** uma cópia ordenada da coluna, organizada como **B-tree**, guardando um ponteiro para a linha original. Buscar nela é descer poucos níveis em vez de percorrer tudo — ~20 comparações em um milhão de linhas contra um milhão. Multiplicar a tabela por mil acrescenta **dez** comparações.
+
+**O que separa uma boa resposta:** mencionar o custo sem ser perguntado. O índice ocupa disco (medido: +34% no arquivo com um só) e torna **toda** escrita mais lenta, porque a cópia ordenada precisa ser atualizada a cada `INSERT`, `UPDATE` e `DELETE`.
+
+### P54 — "Quando você **não** criaria um índice?" `[julgamento — a pergunta que separa]`
+
+**O que testam:** se você entende o custo ou só o benefício.
+
+**A resposta forte, com o caso medido:** coluna pouco seletiva. Na mesma tabela de 500 mil linhas, um índice em `cliente_id` (13 linhas devolvidas) deu **1518x**; um índice em `tipo` (100 mil linhas devolvidas) deu **ganho zero** — foi usado pelo otimizador e não mudou nada, cobrando disco e escrita para sempre.
+
+**A regra:** o índice compensa quando o filtro devolve menos de ~5% a 10% da tabela. Também não indexar: tabela pequena, tabela de escrita intensa, consulta que roda uma vez por mês, e coluna que nenhuma consulta filtra — cardinalidade boa responde "poderia ajudar", não "é necessário".
+
+**O caso que impressiona:** em 12,5% da tabela, medido, o índice tornou a consulta **51% mais lenta**. Não é neutro — é prejuízo.
+
+### P55 — "A consulta está lenta. Qual o primeiro passo?" `[procedimento]`
+
+**A resposta errada é "criar um índice".** A certa é `EXPLAIN QUERY PLAN`.
+
+**A sequência:** ler o plano (é `SCAN`?) → medir a seletividade do filtro (`COUNT(*)` do `WHERE` contra o total) → só então decidir → **medir de novo depois** → se não melhorou, `DROP INDEX`.
+
+**O passo que quase ninguém cita é o último.** Índice criado que não ajudou costuma ficar para sempre, porque ninguém volta para conferir. Desfazer é parte do procedimento, não uma exceção.
+
+**Um detalhe de método que mostra experiência:** o plano fica em cache na conexão. Medir, criar o índice e medir de novo na mesma conexão pode reaproveitar o plano antigo e produzir um número errado — e um número errado convence mais que nenhum número.
+
+### P56 — "Por que `WHERE UPPER(nome) = 'ANA'` não usa o índice?" `[conceitual — pega o mecanismo]`
+
+**Resposta forte:** o índice guarda `nome`, não `UPPER(nome)`. São valores diferentes, e a ordenação de um não ajuda a buscar o outro. Vale para qualquer função sobre a coluna no `WHERE`: `SUBSTR(cpf,1,3)`, `strftime('%Y', data)`, até `cliente_id + 0` — medido, 36,61 ms contra 0,04 ms da versão sem a soma.
+
+**As saídas:** índice sobre expressão (onde o banco suportar), coluna normalizada gravada já em minúsculas, ou `COLLATE NOCASE`. Para datas, reescrever como faixa: `data >= '2026-03-01' AND data < '2026-04-01'` em vez de extrair o mês.
+
+**A ressalva que poucos trazem:** reescrever o filtro para usar índice **não pode mudar a resposta**. `UPPER(nome) = 'ANA'` e `nome = 'Ana'` são perguntas diferentes se houver `'ANA'` ou `'ana'` na base — e verificar isso faz parte da otimização.
+
+### P57 — "Explique ACID." `[conceitual — a mais previsível do módulo]`
+
+**A resposta boa:** **A**tomicidade (tudo ou nada), **C**onsistência (as restrições valem ao fim), **I**solamento (ninguém vê estado intermediário), **D**urabilidade (confirmado sobrevive à queda de energia) — cada uma com um exemplo.
+
+**A resposta que separa** termina dizendo o que ACID **não** garante. Ele descreve o comportamento de cada transação; não escolhe o padrão de acesso da aplicação. Medido no SQLite, que implementa o nível **mais rígido** de isolamento (`SERIALIZABLE`): dois saques concorrentes de uma conta de R$ 1.000,00, esperado R$ 700,00, resultado R$ 800,00 — **sem erro nenhum**. As quatro letras cumpridas, o dinheiro perdido.
+
+### P58 — "O que é *lost update* e como evitar?" `[caso prático]`
+
+**O mecanismo:** A lê 1000, B lê 1000, A grava 900, B grava 800. As duas leituras eram válidas; a segunda escrita sobrescreveu a primeira. É o padrão **ler-modificar-escrever**, e ele não produz erro.
+
+**As três correções, em ordem de preferência:**
+1. **Operação em vez de valor** — `SET saldo = saldo - 100`. Dispensa transação, não bloqueia ninguém. Primeira escolha sempre que a mudança couber como expressão.
+2. **`BEGIN IMMEDIATE`** — quando a decisão é complexa demais para caber num `WHERE`. Bloqueio pessimista: assume o conflito e previne.
+3. **Bloqueio otimista** — gravar com `WHERE valor = <o que foi lido>` e conferir `rowcount`; zero significa "alguém mudou no meio, releia". Assume que o conflito é raro e apenas detecta. Se conflitos forem frequentes, todo mundo refaz o tempo todo e fica pior que esperar.
+
+**O detalhe que impressiona:** a escolha entre 2 e 3 é uma aposta na **frequência do conflito** — os nomes "pessimista" e "otimista" dizem exatamente isso.
+
+### P59 — "Está aparecendo `database is locked`. O que investigar?" `[depuração]`
+
+**A sequência:** transação longa aberta em algum lugar (a causa mais comum) → `COMMIT` esquecido num caminho de erro → `timeout` curto demais no driver → modo de journal.
+
+**O que mostra experiência:** dizer que no SQLite há **um escritor por vez no banco inteiro** — não por linha, não por tabela. Não é um defeito a contornar; é o modelo. E que ajustar o `timeout` **transforma o erro numa espera**, o que resolve boa parte dos casos sem mudar código.
+
+**A pergunta de volta que impressiona:** "há chamada de rede ou leitura de arquivo dentro de alguma transação?" É a causa mais frequente de transação longa, e a de correção mais direta.
+
+### P60 — "Por que não usar SQLite em produção?" `[premissa capciosa — cuidado]`
+
+**Não aceite a premissa.** SQLite é o banco mais instalado do mundo: está em todo celular, todo navegador, todo sistema embarcado. Para aplicativo local, site de leitura intensa ou análise sobre arquivo, é frequentemente a escolha **certa** — sem servidor, sem configuração, um arquivo.
+
+**O limite real, dito com precisão:** um escritor por vez no banco inteiro. Isso torna inadequado o cenário de muitas escritas simultâneas — um sistema transacional com centenas de usuários gravando ao mesmo tempo. É onde PostgreSQL e MySQL entram, bloqueando por linha em vez do banco todo.
+
+**A ressalva que fecha:** bloqueio por linha resolve a concorrência e cria o *deadlock* — duas transações esperando uma pela outra. Nenhuma das duas arquiteturas é gratuita; conhecer o que cada uma cobra é o que permite escolher em vez de repetir.
+
+### P61 — "Modele um sistema de reservas de hotel." `[caso prático — o formato clássico de entrevista sênior]`
+
+**O erro é começar a desenhar.** Comece perguntando: um quarto tem tipo, e a reserva é de um quarto específico ou de um tipo? Cancelamento apaga a reserva ou muda o status? O preço da diária varia por período? Um hóspede pode reservar para outra pessoa?
+
+**Depois:** entidades (`hoteis`, `quartos`, `hospedes`, `reservas`), relações (um hotel tem N quartos; uma reserva é de um quarto e um hóspede), e as decisões justificadas — sobretudo a do **preço da diária copiado para dentro da reserva**, pelo motivo do `preco_unitario_centavos`.
+
+**O que se avalia não é a resposta certa, é o processo:** as perguntas antes, as relações identificadas, o que você justifica e o que reconhece como discutível.
+
+### P62 — "O que é normalização, e até onde normalizar?" `[conceitual]`
+
+**As três formas com um exemplo cada:** 1FN — nada de lista numa célula; 2FN — toda coluna depende da chave inteira; 3FN — nenhuma coluna depende de outra coluna comum. A regra prática que resume: **cada fato mora em um só lugar**.
+
+**A resposta madura:** até a 3FN por padrão, desnormalizando **com motivo escrito**. E o exemplo que prova domínio: `itens_pedido.preco_unitario_centavos` repete o preço de `produtos` de propósito, porque não é o mesmo fato — um é *quanto custa hoje*, o outro é *quanto custou naquela venda*.
+
+**O que impressiona:** dizer que normalização elimina **fato repetido**, não valores parecidos. É a distinção que separa desnormalização deliberada de erro.
+
+### P63 — "Como você migra um schema em produção sem perder dados?" `[procedimento]`
+
+**A sequência:** migração **versionada** (arquivo numerado, com o comando que aplica e o que reverte) → transacional, apagando o resultado se falhar no meio → **conferência antes de declarar sucesso** → plano de reversão → a estrutura nova convivendo com a antiga durante a transição.
+
+**O detalhe que separa — o que conferir.** Contagem de cada tabela **não é suficiente**: trocar o `cliente_id` entre dois pedidos preserva contagens e faturamento total, e embaralha o relatório de melhores clientes sem que nada acuse. É preciso ao menos um agregado **por grupo**. E a conferência de valores se faz em **centavos**, porque em ponto flutuante duas somas corretas podem diferir.
+
+### P64 — "Qual a diferença entre OLTP e OLAP?" `[conceitual — arquitetura]`
+
+**OLTP registra:** muitas escritas pequenas, schema normalizado, integridade acima de tudo, transações curtas. É o schema que você acabou de projetar.
+
+**OLAP analisa:** poucas escritas em lote, tabelas largas, dados repetidos de propósito, junções evitadas, integridade relaxada porque os dados chegam já validados.
+
+**O que fecha a resposta:** as duas formas invertem quase todas as decisões, e nenhuma está errada — elas resolvem problemas diferentes. Confundi-las é a causa mais comum de um data warehouse lento ou de um sistema transacional inconsistente. **A tradução de uma para a outra é o trabalho de engenharia de dados.**
