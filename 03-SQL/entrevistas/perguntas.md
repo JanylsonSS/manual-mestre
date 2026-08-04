@@ -281,3 +281,49 @@ Pontos da saída forte:
 3. Erro típico 2: `COUNT(*) > 3` no `WHERE` — erro de verdade, a agregação ainda não existe;
 4. **O movimento que impressiona**: perguntar antes se "mais de 3 produtos" conta só os ativos ou todos — a mesma frase em português comporta duas consultas diferentes.
 </details>
+
+### P-03.07-01 `[conceitual · júnior]` — O que é um `INNER JOIN`?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Combina linhas de duas tabelas mantendo os pares em que a condição do `ON` é verdadeira;
+2. Cada par aprovado vira **uma linha** com as colunas das duas;
+3. O `ON` quase sempre compara uma chave estrangeira com a chave primária correspondente;
+4. **Linhas sem correspondência desaparecem dos dois lados** — é o que distingue o `INNER`, e o gancho para o `LEFT JOIN`.
+</details>
+
+### P-03.07-02 `[código · pleno]` — O que é um produto cartesiano e como ele acontece sem querer?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Todos os pares possíveis — N × M linhas;
+2. Acontece por `ON` esquecido ao acrescentar uma tabela, ou condição sempre verdadeira;
+3. Sintoma: consulta que não termina, contagem absurda;
+4. Diagnóstico: nº de `JOIN` = nº de `ON`, **e** cada `ON` compara colunas das duas tabelas. A sintaxe com vírgula esconde o problema; `JOIN ... ON` o transforma em erro de sintaxe.
+</details>
+
+### P-03.07-03 `[conceitual · pleno]` — Juntando `pedidos` com `itens_pedido`, quantas linhas o resultado tem?
+
+<details><summary>Resposta esperada</summary>
+
+Pontos que uma boa resposta cobre:
+1. Uma por **item**, não por pedido — a granularidade é da tabela mais fina;
+2. Um pedido com 3 itens aparece 3 vezes;
+3. Consequência: `COUNT(*)` conta itens; para pedidos, `COUNT(DISTINCT p.id)`;
+4. Prever o número de linhas antes de rodar é a defesa contra somas infladas.
+</details>
+
+### P-03.07-04 `[pegadinha · sênior]` — Uma consulta junta `pedidos`, `itens_pedido` e `pagamentos` para mostrar o total dos itens e o total pago. Os dois saíram maiores. Por quê?
+
+<details><summary>Resposta esperada</summary>
+
+Por que derruba: é a evolução da multiplicação de linhas, e só aparece quando há dois filhos dos dois lados.
+
+Pontos da saída forte:
+1. Um pedido com 3 itens e 2 pagamentos produz **6 linhas** — cada item pareado com cada pagamento;
+2. A soma dos itens conta cada item **2 vezes**; a dos pagamentos, cada um **3 vezes** — **fatores diferentes**;
+3. Com **um** pagamento por pedido o resultado fica correto — o bug dorme até o primeiro parcelamento;
+4. Solução: agregar cada filho **separadamente**, com CTEs (03.10) ou subconsultas (03.09). Regra geral: duas tabelas filhas do mesmo pai não convivem numa junção quando há agregação.
+</details>
