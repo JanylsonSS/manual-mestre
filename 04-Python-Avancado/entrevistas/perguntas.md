@@ -113,3 +113,45 @@ Uma operação com pouco estado, closure. Mais de uma operação sobre o mesmo e
 **O exemplo que torna o critério concreto:** um contador em closure não dá para **ler sem incrementar** nem zerar. Acrescentar essas operações exige devolver um dicionário de funções — e aí você tem um objeto montado à mão, com `c["inc"]()` no lugar de `c.incrementar()`, sem `AttributeError` útil quando o nome está errado, sem docstring e sem `__repr__`.
 
 **O critério afiado:** não é o número de operações, é se elas são chamadas em **ordem arbitrária e repetidamente**. Duas operações com fluxo fixo (acumula muitas vezes, lê uma) cabem numa closure.
+
+### P13 — "O que é um decorador?" `[conceitual — a mais previsível do bloco]`
+
+Uma função que recebe uma função e devolve outra. **`@dec` é açúcar sintático para `funcao = dec(funcao)`**, executado logo depois do `def`.
+
+**A resposta que encerra a pergunta** é escrever a linha equivalente. Se você consegue mostrar que as duas formas produzem o mesmo objeto, demonstrou que não há mecanismo novo — só notação para função como valor (primeira classe), closure e repasse com `*args, **kwargs`.
+
+**O detalhe que separa:** o decorador roda na **definição**, uma vez, não a cada chamada. É o que permite o padrão de **registro** — `@app.get("/rota")` sabe que a rota existe antes de qualquer requisição chegar.
+
+### P14 — "Para que serve `functools.wraps`?" `[conceitual — com uma armadilha]`
+
+Copia `__name__`, `__doc__`, `__module__` e define `__wrapped__` — que é o que faz `inspect.signature` atravessar o envelope e reportar a assinatura real.
+
+**As duas consequências que importam de verdade:** frameworks que **leem a assinatura** para injetar dependências (FastAPI, pytest) encontram `(*args, **kwargs)` e param de funcionar. E código que usa `f.__name__` como chave de registro grava tudo como `'envolvida'` — com duas rotas, a segunda sobrescreve a primeira **sem erro nenhum**.
+
+**A armadilha, e trazê-la impressiona:** muita gente diz que `wraps` "melhora o traceback". **Não melhora.** O traceback lê `__code__.co_name`, que é imutável e continua sendo `envolvida`; `wraps` copia atributos da função, não o código compilado. Use `wraps` sempre — pelos motivos certos.
+
+### P15 — "Como fazer um decorador que aceita argumentos?" `[caso prático]`
+
+**Três níveis**, e nomeá-los na resposta é metade do ponto: uma **fábrica** que recebe os argumentos, devolve o **decorador** que recebe a função, que devolve o **envelope** que recebe os argumentos da chamada.
+
+```python
+def repetir(vezes):            # fábrica
+    def decorador(funcao):     # decorador
+        @functools.wraps(funcao)
+        def envolvida(*a, **k):  # envelope
+            return [funcao(*a, **k) for _ in range(vezes)]
+        return envolvida
+    return decorador
+```
+
+**A regra:** `@dec` sem parênteses recebe a função; `@dec(...)` é chamado primeiro, e o resultado recebe a função.
+
+**O bônus que poucos sabem:** dá para aceitar as duas formas — `funcao=None` como primeiro parâmetro, argumentos keyword-only, e `return decorador if funcao is None else decorador(funcao)`. É como `functools.lru_cache` funciona com e sem parênteses.
+
+### P16 — "Em que ordem decoradores empilhados aplicam?" `[previsão]`
+
+**De baixo para cima.** O mais próximo do `def` envolve primeiro e fica mais interno: `@a` sobre `@b` equivale a `a(b(f))`.
+
+**O caso que mostra que a ordem não é estética:** `@cache` acima de `@autenticar` serve o resultado cacheado **sem passar pela autenticação** — qualquer pessoa recebe o dado de quem pediu antes. É falha de segurança, não otimização.
+
+**O segundo caso, mais sutil:** `@cronometrar` acima de `@cache` mede os acertos de cache (quase zero) e afunda a média, escondendo o custo real. Invertido, mede só o cálculo. Nenhuma das ordens é universalmente certa — elas respondem perguntas diferentes: "quanto o chamador espera?" contra "quanto custa calcular?".
