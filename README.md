@@ -46,7 +46,7 @@ O fluxo de versionamento e sincronização entre máquinas está em [`CONTRIBUIN
 | 01 — Python Fundamental | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 25 / 25 |
 | 02 — Git e Linux | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 12 / 12 |
 | 03 — SQL | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 16 / 16 |
-| 04 — Python Avançado | Em geração (funções 04.01–04.06 · POO 04.07–04.13 · tipos, validação, ambiente e projeto 04.14–04.17) | 17 / 23 |
+| 04 — Python Avançado | Em geração (funções 04.01–04.06 · POO 04.07–04.13 · profissionalização 04.14–04.20) | 20 / 23 |
 | 05–13 | Não iniciados | 0 |
 
 *Última atualização: 2026-08-05 · Gerado sob spec 3.0.0*

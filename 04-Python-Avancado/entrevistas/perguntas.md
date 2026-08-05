@@ -640,3 +640,125 @@ A mensagem já diz o problema: `cannot import name 'alfa' from partially initial
 **A correção real é de desenho.** Dois módulos que precisam um do outro em tempo de importação quase sempre são: **um módulo só**, artificialmente dividido; ou **dois com um terceiro faltando**, que deveria conter o que ambos usam.
 
 Há um caso legítimo para adiar o import: quebrar o ciclo que existe **apenas por causa de anotações de tipo**, com `from __future__ import annotations` ou `if TYPE_CHECKING:`. Aí não é gambiarra — é dizer que a dependência é do verificador, não da execução.
+
+### P69 — "Como você guarda a data de um pedido?" `[prático — a pergunta padrão]`
+
+`datetime` **consciente em UTC**, gravado em **ISO 8601**.
+
+Em UTC porque um pedido acontece num **instante**, e instante não tem fuso — o fuso é de quem olha. Em ISO 8601 porque o formato ordena corretamente como texto, o que resolve o `ORDER BY` num banco que guarda datas como texto (SQLite, CSV, JSON).
+
+**E o detalhe que mostra que você já viu isso quebrar:** a ordenação por texto só funciona se **todos** os registros estiverem no mesmo offset. Dois registros do mesmo instante gravados como `…T17:30:00+00:00` e `…T14:30:00-03:00` saem trocados na ordenação, porque `14` vem antes de `17` no alfabeto. Um único registro com offset diferente estraga a coluna inteira.
+
+**A pergunta de acompanhamento costuma ser sobre exibição:** a conversão para o fuso de quem lê acontece na formatação, na última linha — nunca antes, porque um valor convertido que continua circulando é um instante disfarçado de leitura de relógio.
+
+### P70 — "O que acontece na volta do horário de verão?" `[conceitual — o caso que ninguém testa]`
+
+**Uma hora se repete.** Em São Paulo, em 17/02/2018, o relógio voltou de 00:00 para 23:00, e as 23:30 aconteceram duas vezes.
+
+Os dois `datetime` têm a mesma leitura de relógio. O atributo `fold` os distingue (`0` a primeira ocorrência, `1` a segunda), e **eles se comparam como iguais** — com o mesmo hash, de modo que num `set` um dos dois desaparece, estando a **uma hora** de distância.
+
+É deliberado: a PEP 495 deixou o `fold` fora da comparação para não quebrar código existente. A saída é comparar em UTC, onde eles são distintos.
+
+**E o caso simétrico:** na ida, uma hora **não existe** — em 04/11/2018 o relógio pulou de 00:00 para 01:00. O Python aceita `datetime(2018, 11, 4, 0, 30)` sem reclamar e escolhe um instante. Se o seu sistema aceita horário digitado, esse é um valor que pode chegar.
+
+### P71 — "Por que não escrever `-03:00` direto?" `[conceitual — específico do Brasil]`
+
+Porque **fuso é um lugar com história, e offset é um número**. `ZoneInfo("America/Sao_Paulo")` consulta a base de fusos e sabe que o país teve horário de verão até 2019; `timezone(timedelta(hours=-3))` não sabe de nada.
+
+O efeito prático: 15 de janeiro ao meio-dia em São Paulo é `-02:00` em 2019 e `-03:00` em 2020. Quem fixou o offset acerta os dados de hoje e **erra uma hora em todo dado de verão anterior a 2020** — e a base histórica de qualquer empresa brasileira com mais de sete anos tem essa fronteira no meio.
+
+**O único offset fixo legítimo é UTC**, porque por definição ele não muda.
+
+### P72 — "Como você mede quanto tempo uma operação levou?" `[prático — pega quem nunca pensou nisso]`
+
+`time.perf_counter()` ou `time.monotonic()`, **não** `datetime.now()`.
+
+O motivo é uma propriedade que dá para consultar: `time.get_clock_info("monotonic").monotonic` é `True` e o de `time` é `False`. O relógio de parede **pode andar para trás** — ajuste de NTP, troca de fuso, alguém corrigindo o relógio do servidor — e uma duração medida com ele pode sair **negativa**.
+
+Na prática os dois costumam dar o mesmo número (50,1 contra 50,2 ms num teste). **A diferença não é de precisão, é de garantia**, e a garantia importa justamente no caso raro que você não vai reproduzir.
+
+`datetime.now(timezone.utc)` continua sendo o certo para registrar **quando** algo aconteceu. São perguntas diferentes: "que horas eram" e "quanto tempo passou".
+
+### P73 — "Por que não usar `print`?" `[conceitual — a pergunta que abre o assunto]`
+
+Porque faltam quatro coisas: **nível** (não dá para ver só os erros), **carimbo de tempo**, **origem** (de qual módulo veio) e **destino configurável** (o programa roda como serviço e o `stdout` não foi guardado).
+
+**E há uma diferença que quase ninguém menciona, e que impressiona:** `print` escreve na **saída** do programa e log escreve no **diário** dele. Um script rodado como `programa.py > relatorio.csv` recebe as mensagens de depuração **dentro do CSV** se elas forem `print`. É por isso que o log vai para `stderr` por padrão.
+
+**O complemento honesto:** nem todo `print` deve virar log. A saída legítima do programa — o relatório, o resultado — continua sendo `print` em `stdout`. A regra é: `stdout` é o resultado, `stderr` é o diário.
+
+### P74 — "Por que meu `logger.info` não aparece?" `[prático — todo mundo passa por isso]`
+
+Porque o nível padrão é `WARNING`. Sem configuração, `DEBUG` e `INFO` são descartados, e o que passa sai pelo *handler de último recurso*, em `stderr`, sem carimbo de tempo.
+
+**E a resposta que separa quem já depurou isso:** há **dois** filtros em série. Depois de `logging.getLogger("aurora").setLevel(logging.INFO)`, a mensagem passa pelo logger (`isEnabledFor(INFO)` devolve `True`) e ainda assim não aparece — porque o handler de último recurso tem nível fixo em `WARNING`, e ajustar o logger não o alcança.
+
+Saber **qual dos dois filtros** está cortando é metade da depuração de log. O outro sintoma clássico é o oposto: a mesma mensagem saindo **duas vezes**, porque o registro sobe a hierarquia e é emitido pelo handler do seu logger e de novo pelo do raiz.
+
+### P75 — "f-string ou vírgula na mensagem de log?" `[prático — com número]`
+
+**Vírgula.** `log.debug("pedido %s", pedido)` é preguiçoso: o `%s` só é aplicado se a mensagem passar pelo filtro de nível. A f-string formata **antes** de a função ser chamada, mesmo com o nível desligado.
+
+**Medido, com `DEBUG` desligado e 200 mil chamadas que não produzem saída nenhuma:**
+
+- valor barato: 60,4 ms (vírgula) contra 78,0 ms (f-string);
+- valor caro de formatar: **54,8 ms contra 139,4 ms**.
+
+**A leitura que importa é que o custo da versão preguiçosa não muda com o valor** — ela nem formata. O da f-string cresce com o quanto o valor custa para virar texto, e esse trabalho é integralmente jogado fora.
+
+Quando o argumento é caro de **calcular** (e não só de formatar), a guarda explícita: `if log.isEnabledFor(logging.DEBUG):`.
+
+### P76 — "Como você registra uma exceção?" `[prático]`
+
+`log.exception("mensagem")` dentro do `except`. Ele equivale a `log.error(..., exc_info=True)` e inclui o **rastro completo** — arquivo, linha e caminho de chamadas.
+
+`log.error(str(erro))` registra que houve um problema; `log.exception` registra **onde**. `division by zero` sozinho não diz qual arquivo nem qual linha, e numa investigação de madrugada essa é a diferença entre trinta segundos e duas horas.
+
+**Dois complementos que mostram experiência.** Uma exceção que você **relança** não deve ser registrada onde foi capturada, ou o mesmo problema aparece três vezes no arquivo. E uma exceção **prevista** pelo negócio — cartão expirado, CEP inválido — não é `ERROR`: é o sistema funcionando.
+
+### P77 — "Para que serve o `with`?" `[conceitual — aquecimento, com resposta que separa]`
+
+Para garantir que a **saída** aconteça: no fim normal, no `return`, no `break` e na exceção. É `try/finally` com a garantia morando **no recurso**, não na memória de quem o usa.
+
+**A resposta que separa acrescenta duas coisas.** Primeira: o `__exit__` **recebe a exceção** — tipo, valor e rastro, ou três `None` —, e é por isso que uma transação decide sozinha entre `COMMIT` e `ROLLBACK`. Segunda: se ele devolver um valor **verdadeiro**, a exceção é **suprimida**, sem log e sem rastro. É como `contextlib.suppress` funciona, e é o erro acidental mais caro do assunto, porque mora na classe do recurso e quem escreveu o `with` nunca vê aquela linha.
+
+**E o detalhe que mostra experiência:** ele roda até em `sys.exit()`, que levanta `SystemExit`. Não roda em `os._exit()`, que encerra o processo no ato.
+
+### P78 — "`with conexao:` fecha a conexão?" `[prático — pega quase todo mundo]`
+
+No `sqlite3`, **não**. Ele gerencia a **transação**: `COMMIT` no fim normal, `ROLLBACK` na exceção. A conexão continua aberta e utilizável depois do bloco.
+
+É o exemplo mais claro de que **`with` não significa "fecha"**: significa que o objeto tem um protocolo de entrada e saída, e o que ele faz na saída é decisão dele.
+
+O sintoma na prática é caro: uma aplicação que abre conexões dentro de um laço, cada uma "protegida" por um `with`, esgota o limite do banco. A forma correta são dois `with` aninhados, porque são duas garantias diferentes:
+
+```python
+with contextlib.closing(sqlite3.connect(caminho)) as conexao:
+    with conexao:
+        conexao.execute(...)
+```
+
+### P79 — "Classe ou `@contextmanager`?" `[julgamento — com número]`
+
+**Gerador** para uso único e simples — é o formato natural de "faz, entrega, desfaz". **Classe** em três casos.
+
+**Quando o resultado precisa sobreviver ao bloco.** Um cronômetro cujo valor você lê depois precisa ser objeto; um gerador não deixa nada para trás além do que entregou no `yield`.
+
+**Quando o mesmo objeto entra em vários `with`.** Um gerenciador de gerador é de uso único — a segunda vez falha com `AttributeError: args`, uma mensagem que não explica nada.
+
+**Quando está num laço quente.** Medido: entrar e sair um milhão de vezes custa **240 ms** na classe e **1511 ms** no `@contextmanager` — cerca de 6×, porque o decorador cria um gerador, chama `next()` e trata `StopIteration`. Para um arquivo ou uma conexão a diferença é invisível; num laço de dez milhões, são 15 segundos contra 2,4.
+
+**E antes de escrever qualquer um:** verifique se o `contextlib` já tem. `suppress`, `closing`, `ExitStack` e `nullcontext` cobrem a maioria dos casos simples.
+
+### P80 — "Como você garante que N recursos sejam fechados?" `[prático — a pergunta do ExitStack]`
+
+`contextlib.ExitStack`, quando o **número só se sabe em execução**:
+
+```python
+with contextlib.ExitStack() as pilha:
+    arquivos = [pilha.enter_context(open(c)) for c in caminhos]
+```
+
+Todos são fechados na ordem inversa, e uma falha em qualquer um não impede o fechamento dos demais. `with a, b, c` resolve o caso de quantidade fixa; um `try/finally` com lista resolve e custa oito linhas onde cabem três.
+
+**O caso relacionado que vale citar:** se o `__enter__` de um gerenciador adquire dois recursos e o segundo falha, **o `__exit__` não roda** — o `with` nem chegou a começar. Limpar o primeiro é responsabilidade do próprio `__enter__`, e `ExitStack` é a ferramenta usada também aí, dentro dele.
