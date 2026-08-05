@@ -382,7 +382,7 @@ Nesta escala, irrelevante — e com três notas honestas que valem para sempre. 
 *Resposta esperada:* duas ou mais etiquetas referenciando o **mesmo** objeto mutável — mutação por qualquer uma é vista por todas; exemplo com `b = a` + `append`; diagnóstico com `is`/`id`; prevenção: cópia explícita (`copy()`), estruturas imutáveis, não mutar o que se recebe. Ligar ao modelo "atribuição copia referência, não objeto" mostra fundamento, não decoreba.
 
 **P2. "Qual a diferença entre cópia rasa e profunda? Quando cada uma?"**
-*Resposta esperada:* rasa duplica o invólucro (itens compartilhados — `copy()`, `[:]`, `list()`); profunda duplica recursivamente (`copy.deepcopy`). Rasa basta com itens imutáveis; aninhamento mutável exige profunda (ou redesenho para imutáveis). Citar o custo (deepcopy é cara) demonstra critério de engenharia.
+*Resposta esperada:* rasa duplica o invólucro (itens compartilhados — `copy()`, `[:]`, `list()`); profunda duplica recursivamente (`copy.deepcopy`). Rasa é suficiente com itens imutáveis; aninhamento mutável exige profunda (ou redesenho para imutáveis). Citar o custo (deepcopy é cara) demonstra critério de engenharia.
 
 **P3. "Diferença entre `lista.sort()` e `sorted(lista)`?"**
 *Resposta esperada:* `sort()` muta no lugar e devolve `None` (só para listas); `sorted()` devolve **nova** lista ordenada e aceita qualquer iterável; escolha pela necessidade de preservar o original. Bônus de fluência: ambos aceitam `key` e `reverse`, e o Timsort é estável — o que permite ordenação por múltiplos critérios em passadas sucessivas.
@@ -400,7 +400,7 @@ Enunciados completos em [`exercicios/cap13.md`](exercicios/cap13.md); gabaritos 
 
 - **A1** `[~10 min · previsão de aliasing]` — 6 cenas (imutáveis e mutáveis, reamarrar × mutar): preveja o estado final de cada etiqueta.
 - **A2** `[~5 min · contratos]` — Classifique 10 métodos: muta (None) ou devolve novo?
-- **A3** `[~10 min · rasa ou profunda?]` — 4 estruturas: diga qual cirurgia basta e por quê.
+- **A3** `[~10 min · rasa ou profunda?]` — 4 estruturas: diga qual cirurgia é suficiente e por quê.
 - **A4** `[~5 min · sort × sorted]` — 4 trechos: qual preserva o original, qual devolve None, qual explode.
 
 ### Aplicação
@@ -449,7 +449,7 @@ Requisitos numerados:
 
 - **Aliasing**: `b = a` copia a amarração, nunca o objeto — com mutáveis, as duas etiquetas veem toda mutação; diagnóstico: `a is b` / `id()`.
 - Reamarrar (`b = b + x`) afeta uma etiqueta; **mutar** (`b.append(x)`) afeta o objeto — e, portanto, todas as etiquetas. O verbo decide.
-- Cirurgias: `copy()`, `[:]`, `list()` para cópia **rasa** (invólucro novo, itens compartilhados) — basta com itens imutáveis; `copy.deepcopy()` para estruturas **aninhadas**.
+- Cirurgias: `copy()`, `[:]`, `list()` para cópia **rasa** (invólucro novo, itens compartilhados) — é suficiente com itens imutáveis; `copy.deepcopy()` para estruturas **aninhadas**.
 - Contratos dos métodos: mutadores (`append`, `extend`, `insert`, `remove`, `pop`, `clear`, `sort`, `reverse`) devolvem `None`; `sorted`/`[::-1]`/`copy` devolvem novo. `ordenada = lista.sort()` mata a lista.
 - `sort`/`sorted` aceitam `key` (ex.: `key=str.lower` para ordem canônica) e `reverse`; Timsort é estável.
 - Não se modifica a lista que se percorre — construa outra (padrão filtrar); e `[[0]*3]*3` repete referência, não conteúdo.
@@ -459,7 +459,7 @@ Requisitos numerados:
 | ID | Frente | Verso |
 |---|---|---|
 | 01.13-F1 | Preveja: `x = ["A"]; y = x; y.append("B"); print(x)` — e por que difere do caso com strings? | (Previsão) `['A', 'B']` — mutar o objeto compartilhado; com strings, `y = y + "B"` REAMARRA y e não toca em x. O verbo decide. |
-| 01.13-F2 | Explique com suas palavras: cópia rasa × profunda, e quando cada uma basta. | (Elaboração) Rasa duplica o invólucro (itens compartilhados) — basta com itens imutáveis; profunda (deepcopy) duplica tudo — necessária com listas dentro de listas. |
+| 01.13-F2 | Explique com suas palavras: cópia rasa × profunda, e quando cada uma é suficiente. | (Elaboração) Rasa duplica o invólucro (itens compartilhados) — é suficiente com itens imutáveis; profunda (deepcopy) duplica tudo — necessária com listas dentro de listas. |
 | 01.13-F3 | `ordenada = precos.sort()` — o que fica em `ordenada`, e qual a linha correta para preservar `precos`? | `None` (sort muta e devolve None). Correta: `ordenada = sorted(precos)`. |
 | 01.13-F4 | Qual o primeiro gesto ao suspeitar que "os dados estão mudando sozinhos"? | (Decisão) Estetoscópio: `a is b` (ou id) — True significa uma lista com dois nomes; a cirurgia é `.copy()` (ou deepcopy, se aninhado). |
 | 01.13-F5 | Por que `a = [[0]*3]*3` faz `a[0][0] = 9` alterar "três linhas"? | A multiplicação repete a mesma referência: existe UMA lista interna com 3 apontamentos. Conserto: criar uma lista nova por linha (for+append ou comprehension). |

@@ -56,7 +56,7 @@ a.sort(reverse=True)
 
 ### A3 — Rasa ou profunda? `[Aquecimento · ~10 min · o critério]`
 
-**Tarefa.** Para cada estrutura, diga qual cirurgia basta e por quê:
+**Tarefa.** Para cada estrutura, diga qual cirurgia é suficiente e por quê:
 
 1. `["PED-1", "PED-2", "PED-3"]`
 2. `[100, 200, 300]`

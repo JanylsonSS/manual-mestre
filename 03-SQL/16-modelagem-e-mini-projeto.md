@@ -363,7 +363,7 @@ Em [`exercicios/cap16.md`](exercicios/cap16.md):
 
 **D1 — O projeto do módulo.** Projete e implemente, do zero, o schema da Aurora ampliado com **três** requisitos novos: um produto pode ter várias fotos; um cliente pode ter vários endereços, e cada pedido é entregue em um deles; e cada pedido tem um histórico de mudanças de status, com data e responsável.
 
-Entregue: o diagrama ER; o DDL completo com `STRICT`, restrições, ações de `ON DELETE` e índices; um `decisoes.md` com uma linha por coluna não-óbvia; um `ataques.sql` com quinze comandos que devem ser recusados, todos recusados; e a carga dos dados existentes com conferência.
+Entregue: o diagrama ER; o DDL completo com `STRICT`, restrições, ações de `ON DELETE` e índices; um `decisoes.md` com uma linha por coluna cuja escolha exigiu critério; um `ataques.sql` com quinze comandos que devem ser recusados, todos recusados; e a carga dos dados existentes com conferência.
 
 E a parte que fecha o módulo: **compare o seu schema com `codigo/cap16/schema.sql`**, decisão por decisão. Para cada divergência, argumente quem está certo — e encontre pelo menos **uma** em que você está.
 

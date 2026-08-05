@@ -62,7 +62,7 @@ Regra dos 15 minutos antes da Dica 1. Gabaritos em [`gabaritos/cap16.md`](gabari
 1. as perguntas que você faria ao cliente **antes** de desenhar (mínimo três);
 2. o diagrama ER;
 3. o DDL com `STRICT`, `NOT NULL`, `CHECK`, ações de `ON DELETE` e índices;
-4. uma linha de justificativa por coluna não-óbvia;
+4. uma linha de justificativa por coluna cuja escolha exigiu critério;
 5. **três** comandos que o schema deve recusar, executados, com a mensagem.
 
 **A decisão que vale a nota:** o valor da diária muda com o tempo. Onde ele fica, e por quê?
@@ -109,7 +109,7 @@ CREATE TABLE vendas (
 - um cliente pode ter **vários endereços**, e cada pedido é entregue em um deles;
 - cada pedido tem um **histórico de mudanças de status**, com data e responsável.
 
-**Entregue:** o diagrama ER · o DDL completo · `decisoes.md` com uma linha por coluna não-óbvia · `ataques.sql` com quinze comandos que devem ser recusados, todos recusados · a carga dos dados existentes com conferência.
+**Entregue:** o diagrama ER · o DDL completo · `decisoes.md` com uma linha por coluna cuja escolha exigiu critério · `ataques.sql` com quinze comandos que devem ser recusados, todos recusados · a carga dos dados existentes com conferência.
 
 **A parte que fecha o módulo:** compare o seu schema com `codigo/cap16/schema.sql`, decisão por decisão. Para cada divergência, argumente quem está certo — e **encontre pelo menos uma em que você está**.
 

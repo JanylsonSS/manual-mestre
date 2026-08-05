@@ -36,7 +36,7 @@ A solução caseira é conhecida: `relatorio.py`, `relatorio_v2.py`, `relatorio_
 
 O Git resolve exatamente isso, e por isso está em praticamente todo projeto de software do planeta. Mas ele tem uma fama justa de confuso — e a causa é conhecida: **quase todo mundo aprende Git decorando comandos**. `git add`, `git commit`, `git push`, e a esperança de que funcione. No dia em que algo sai do roteiro (e sai), a pessoa fica sem chão, procura a resposta na internet e cola um comando que não entende.
 
-Este capítulo faz o contrário: **zero decoreba, só modelo**. Você vai entender as três áreas, o grafo de commits e o que acontece dentro do `.git`. Os comandos vêm no próximo capítulo — e, quando vierem, cada um será a consequência óbvia de algo que você já entendeu.
+Este capítulo faz o contrário: **zero decoreba, só modelo**. Você vai entender as três áreas, o grafo de commits e o que acontece dentro do `.git`. Os comandos vêm no próximo capítulo — e, quando vierem, cada um será a consequência direta de algo que você já entendeu.
 
 ---
 

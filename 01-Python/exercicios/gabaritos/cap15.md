@@ -32,7 +32,7 @@ else:
 
 1 ✓ · 2 ✓ · 3 ✓ (tupla de imutáveis) · 4 ✗ `TypeError: unhashable type: 'list'` · 5 ✓ (float serve, embora comparação de floats mereça o cuidado do 01.04) · 6 ✗ `TypeError: unhashable type: 'list'` — a tupla **contém** lista: a sutileza do 01.14 cobrando ingresso.
 
-**Critério:** 6/6, com o item 6 conectado ao 01.14 (imutável por fora não basta).
+**Critério:** 6/6, com o item 6 conectado ao 01.14 (imutável por fora não resolve).
 
 ## AP1 — Frequência de palavras
 

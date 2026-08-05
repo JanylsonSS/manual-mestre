@@ -485,7 +485,7 @@ Pontos que uma boa resposta cobre:
 Pontos que uma boa resposta cobre:
 1. Rasa duplica o invólucro (`copy()`, `[:]`, `list()`) — itens compartilhados;
 2. Profunda (`copy.deepcopy`) duplica recursivamente;
-3. Rasa basta com itens imutáveis; aninhamento mutável exige profunda;
+3. Rasa é suficiente com itens imutáveis; aninhamento mutável exige profunda;
 4. Custo: deepcopy é cara — não usar "por precaução".
 </details>
 
@@ -782,7 +782,7 @@ Pontos que uma boa resposta cobre:
 Pontos que uma boa resposta cobre:
 1. EAFP: tente e trate a falha — idiomático em Python, barato no caminho feliz;
 2. LBYL: valide antes — legível para condições simples e frequentes;
-3. Com recursos externos (arquivo, rede), validar antes não basta: condição de corrida entre a checagem e o uso;
+3. Com recursos externos (arquivo, rede), validar antes não resolve: há condição de corrida entre a checagem e o uso;
 4. Os dois convivem: guardas para o previsível, try para o resto.
 </details>
 

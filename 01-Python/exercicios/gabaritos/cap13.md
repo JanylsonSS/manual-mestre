@@ -21,7 +21,7 @@ Mutam (devolvem None): `append`, `sort`, `remove`, `reverse`, `extend`. Devolvem
 
 ## A3 — Rasa ou profunda?
 
-1 e 2. Rasa basta — itens imutáveis (strings, ints): ninguém pode alterá-los por dentro.
+1 e 2. Rasa é suficiente — itens imutáveis (strings, ints): ninguém pode alterá-los por dentro.
 3 e 4. Aninhadas: rasa **vaza** se você mutar sublistas.
 No caso 4 com a ressalva "só vou ler": rasa serve na prática — mas a resposta madura acrescenta que a garantia depende de disciplina futura (alguém pode mutar amanhã), e que estruturas imutáveis (tuplas, 01.14) resolvem sem depender de promessa.
 

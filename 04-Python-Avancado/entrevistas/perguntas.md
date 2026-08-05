@@ -340,3 +340,153 @@ Substitui o `__dict__` da instância por um vetor de tamanho fixo: **recusa atri
 **Custo:** sem `__dict__`, sem atributos dinâmicos, atrito com herança múltipla e com bibliotecas que esperam `__dict__`.
 
 **A armadilha que quase ninguém menciona:** uma subclasse que **não** declara `__slots__` recupera o `__dict__` — e com ele, a capacidade de aceitar qualquer atributo. Toda a proteção da mãe desaparece na primeira subclasse distraída, e a economia de memória também. **A garantia é local à classe, não à hierarquia** — toda classe da cadeia precisa declarar, inclusive as vazias, com `__slots__ = ()`.
+
+### P37 — "O que `super()` faz?" `[conceitual — a resposta comum está errada]`
+
+**Não** é "chame a classe mãe". É **"chame o próximo no MRO"** — e a diferença aparece em herança múltipla.
+
+**A demonstração:** num diamante `D(B, C)`, o `super()` escrito **dentro de B** chama **C** — uma classe que `B` sequer referencia. O MRO de `D` é `[D, B, C, A, object]`, e `super()` continua a lista a partir de `B`. Quem decidiu foi o MRO da **instância**, não o código de `B`.
+
+**Por que isso importa na prática:** com `super()`, `A.__init__` roda **uma** vez no diamante. Chamando as mães pelo nome (`B.__init__(self); C.__init__(self)`), roda **duas** — e numa classe que abre conexão ou incrementa contador, isso é um defeito real. É o "problema do diamante", e o C3 existe para resolvê-lo.
+
+### P38 — "O que acontece se eu esquecer `super().__init__()`?" `[previsão]`
+
+O `__init__` da mãe **não roda**, e o objeto nasce sem os atributos dela — `AttributeError` no primeiro uso. Definir um método na filha **substitui** o da mãe, sem exceção.
+
+**A pergunta de acompanhamento que separa:** e se eu chamar `super()` **depois** do código da filha? Aí há dois problemas. Se a mãe atribuir o mesmo atributo, ela **sobrescreve** o valor da filha, em silêncio. E se a filha ler um atributo que a mãe define, vem `AttributeError` — porque ele ainda não existe.
+
+**A regra: `super().__init__()` primeiro.** A mãe inicializa; a filha ajusta.
+
+### P39 — "`isinstance` ou `type()`?" `[julgamento]`
+
+`isinstance`, porque aceita subclasses. `type(x) is Produto` **rejeita** `ProdutoDigital`, que é um produto perfeitamente válido — o oposto do que herança promete.
+
+**A resposta madura vai além:** verificar tipo para **escolher comportamento** costuma indicar polimorfismo faltando. Em vez de uma cadeia de `isinstance`, dê a cada classe o método e chame `p.frete()` — assim, acrescentar um tipo novo não exige tocar em quem consome.
+
+**A armadilha que vale citar:** numa cadeia de `isinstance`, a **subclasse precisa vir antes da mãe**. Com `Importado(Fisico)`, testar `Fisico` primeiro faz o ramo de `Importado` **nunca** executar — e nada avisa.
+
+**E os dois casos em que verificar tipo é legítimo:** quando você não controla as classes (`int`, `str`, `list`), e quando o comportamento pertence a quem consome, não ao objeto — formatar para HTML não é responsabilidade do modelo de domínio.
+
+### P40 — "Quando NÃO usar herança?" `[julgamento — a pergunta que separa sênior]`
+
+Três sinais.
+
+**Quando "todo X é um Y" soa errado.** Herdar `Restaurante` para criar `Fornecedor` porque os dois têm CNPJ confunde **ter os mesmos campos** com **ser do mesmo tipo** — e `Fornecedor` acaba herdando `servir_prato()`.
+
+**Quando aparece a primeira classe que é uma combinação**, não uma especialização: `AssinaturaDigital`, `KitDigitalComAssinatura`. Com 3 características que se combinam livremente, a herança precisa de até 8 classes; a composição, de 3 objetos.
+
+**Quando a filha substitui quase todos os métodos da mãe.** Se ela contradiz em vez de especializar, a relação é outra.
+
+**A ressalva que impressiona:** "prefira composição a herança" é útil e **incompleto**. Ele não diz *quando* (a partir do segundo eixo de variação), ignora que composição custa indireção, e desconsidera que frameworks inteiros — `BaseModel`, `APIView`, `TestCase` — são construídos sobre herança, onde ela é a resposta certa.
+
+### P41 — "Composição ou herança?" `[julgamento — a resposta forte é uma contagem]`
+
+Não é uma preferência: é a **contagem de eixos de variação independentes**. Um eixo com dois ou três casos → herança, e são três linhas. Dois ou mais eixos → composição.
+
+**O número que fecha o argumento:** herança cresce como **2ⁿ**, composição como **n**. Um relatório com quatro eixos de três opções cada exigiria **81 classes** por herança e **12 objetos** por composição. Com um quinto eixo, 243 contra 15.
+
+**E o argumento pior, menos citado:** ao combinar características com herança múltipla, **o MRO decide em silêncio**. `DigitalImportado(Digital, Importado)` devolve o frete de `Digital`, e o de `Importado` nunca é consultado — trocar a ordem das bases muda o sistema, sem erro.
+
+**A ressalva que mostra maturidade:** composição não é gratuita. Ela cobra indireção (`relatorio.gerar()` não diz o que vai acontecer), verbosidade na criação, e move o conhecimento de montagem da hierarquia para quem constrói.
+
+### P42 — "O que é um mixin?" `[conceitual]`
+
+Uma classe que acrescenta **uma** capacidade: sem `__init__`, sem estado próprio, sem sentido instanciada sozinha, e sem relação "é um" — `Produto` não *é um* `SerializavelJSON`.
+
+**É o uso legítimo de herança múltipla**, porque não há diamante nem disputa pelo mesmo método, e o MRO fica linear.
+
+**A regra prática que quase ninguém menciona: mixins vêm ANTES da classe base.** Com `class G(Base, Mixin)`, o MRO é `[G, Base, Mixin]` e a busca para em `Base` — o mixin está na hierarquia e é completamente ignorado, sem nenhum aviso.
+
+**Quando deixa de ser mixin:** quando ganha `__init__` (passa a participar da cadeia de inicialização, e a hospedeira perde atributos se não cooperar) ou quando depende de atributos que só algumas hospedeiras têm — acoplamento não declarado.
+
+### P43 — "O que é duck typing?" `[conceitual]`
+
+"Se anda como pato e grasna como pato, é um pato": o que importa é o **comportamento**, não a classe base. Uma política de frete não precisa herdar de `PoliticaFrete` — qualquer objeto com `calcular()` serve, e **uma função também**.
+
+**Por que isso importa na comparação com Java:** em linguagens de tipagem nominal, a estratégia precisa implementar uma interface declarada. Em Python, a interface é implícita — o que torna composição **mais barata** e desloca o equilíbrio a favor dela.
+
+**O preço:** nada avisa se o objeto não tiver o método, até a chamada acontecer. As respostas são `abc.ABC` com `@abstractmethod` (recusa subclasses incompletas na definição) e `typing.Protocol` (casa duck typing com verificação estática).
+
+### P44 — "Quando herança é a resposta certa?" `[julgamento — a contracorrente]`
+
+Três casos.
+
+**Um eixo, poucos casos.** Físico e digital, só o frete difere: três linhas de herança contra uma arquitetura de políticas. Não troque três linhas por um padrão de projeto.
+
+**Frameworks.** `BaseModel` (Pydantic), `BaseSettings`, `TestCase`, `APIView`. O framework define o esqueleto e você preenche as diferenças — especialização legítima, e compor ali é lutar contra a ferramenta.
+
+**Relações "é um" estáveis que não se combinam.** Hierarquias de exceção são o exemplo perfeito: `ErroDeValidacao(Exception)` permite `except ErroDeValidacao` capturar a família inteira, e ninguém precisa de `ErroDeValidacaoDeRede`.
+
+**O que fecha a resposta:** quem repete "nunca use herança" tem dificuldade de explicar por que as bibliotecas que mais admira a usam.
+
+### P45 — "Qual a diferença entre `__repr__` e `__str__`?" `[conceitual]`
+
+`__repr__` é para **quem depura** — deve ser inequívoco, e o ideal é que o texto seja código válido que recriaria o objeto. `__str__` é para **quem lê** — legível, podendo omitir detalhes.
+
+**Os dois detalhes que separam a resposta boa da completa:** `__repr__` serve de **reserva** para `__str__` (inclusive em f-strings), e o contrário **não** — uma classe só com `__str__` continua com o `repr` inútil de fábrica. E **coleções sempre usam `__repr__`**: `print([produto])` mostra a versão de depuração.
+
+**A conclusão prática:** se for implementar só um, implemente `__repr__` — porque você quase sempre olha objetos dentro de listas.
+
+### P46 — "O que acontece se eu definir `__eq__` sem `__hash__`?" `[conceitual — com o porquê]`
+
+O objeto vira **não-hasheável**: sai de `set` e não serve como chave de dicionário. `{objeto}` levanta `TypeError: unhashable type`.
+
+**O motivo é uma invariante que o Python precisa manter:** objetos iguais devem ter o mesmo hash. O `__hash__` padrão baseia-se na identidade; ao redefinir igualdade por **valor**, o hash padrão passaria a contradizê-la — dois "iguais" cairiam em baldes diferentes. Em vez de permitir a inconsistência, o Python define `__hash__ = None`.
+
+**A consequência que quase ninguém considera:** um objeto hasheável **não deve mudar** os campos que entram no hash. Alterá-los depois de pô-lo num `set` faz o objeto **sumir** — `objeto in conjunto` devolve `False` para algo que está lá dentro, sem erro nenhum. Daí a regra: `__hash__` só em objetos tratados como imutáveis.
+
+### P47 — "Como um objeto funciona em `for` sem `__iter__`?" `[conceitual — protocolo antigo]`
+
+Pelo **protocolo antigo de sequência**: se a classe tem `__getitem__`, o Python cria um iterador que chama `obj[0]`, `obj[1]`… até `IndexError`.
+
+**E `__getitem__` dá quatro coisas de graça:** indexação, fatiamento (se delegar a uma lista interna), iteração e o operador `in`.
+
+**Quando ainda vale escrever `__iter__`:** quando a iteração não é por índice (dicionário, árvore, arquivo) e quando ela deve ser preguiçosa. O protocolo antigo é um detalhe histórico que explica código que de outro modo pareceria mágico.
+
+### P48 — "Quando NÃO sobrecarregar um operador?" `[julgamento]`
+
+Quando ele **não é natural no domínio**. O teste: alguém que conhece o negócio consegue prever o resultado sem ler a implementação?
+
+`Dinheiro + Dinheiro` passa — somar dinheiro existe no mundo. `Pedido + Item` não: somar um item a um pedido pode significar acrescentar, e a notação sugere aritmética. Aí um método com nome de verbo é mais honesto.
+
+**O segundo critério é o custo.** Operador deve ser **barato**, porque a notação promete isso. Um `__add__` que consulta o banco esconde custo atrás de `a + b` — o mesmo problema da property que faz I/O e do `__len__` que lê arquivo.
+
+**E o erro complementar, que vale citar:** implementar `__len__` num `Vetor2D` para devolver o comprimento. `len()` exige inteiro não-negativo, e comprimento de vetor é float — o dunder certo é `__abs__`.
+
+### P49 — "O que `@dataclass` gera?" `[conceitual — quase certa em vaga Python]`
+
+`__init__`, `__repr__` e `__eq__`. **E a resposta que separa candidatos é o que ele não gera: `__hash__`.**
+
+O motivo encadeia com a pergunta anterior sobre `__eq__`: definir igualdade por valor bloqueia o hash de identidade, e o decorador **não tem como saber** se o seu objeto é imutável. Você declara isso com `frozen=True`, e aí o `__hash__` volta.
+
+`order=True` acrescenta `__lt__`, `__le__`, `__gt__` e `__ge__`, comparando a tupla dos campos.
+
+**Um detalhe que mostra leitura da documentação:** o `__eq__` gerado exige `outro.__class__ is self.__class__` — mais estrito que o `isinstance` que se escreve à mão. Uma subclasse com os mesmos valores é **diferente** da mãe.
+
+### P50 — "`dataclass`, `NamedTuple` ou `dict`?" `[julgamento — a pergunta de projeto]`
+
+**`dict`** quando o formato varia ou o volume é alto: cria 3× mais rápido (110,9 ms contra 353,5 ms por milhão) e não exige declarar nada. O preço é que erro de digitação numa chave é um `KeyError` em produção, e ninguém sabe quais campos existem sem ler o código que preenche.
+
+**`NamedTuple`** quando o valor é pequeno, imutável e se beneficia de desempacotamento (`x, y = ponto`). Perde `__post_init__`, mutabilidade parcial e opções por campo.
+
+**`dataclass`** no caso geral, e é o padrão desde o Python 3.7. Dá campos com nome, `repr` legível, igualdade por valor, mutabilidade opcional e validação no `__post_init__`, ao custo de zero na criação de objetos.
+
+**A resposta madura acrescenta a fronteira:** dado que vem de fora — JSON, formulário, CSV — não entra direto em nenhum dos três. A anotação `preco: int` não verifica nada em tempo de execução, e é justamente na borda que o tipo errado chega. Aí entra Pydantic.
+
+### P51 — "`frozen=True` torna o objeto imutável?" `[conceitual — pega quem decorou]`
+
+**Não inteiramente.** Ele gera `__setattr__` e `__delattr__` que levantam `FrozenInstanceError`, o que impede **reatribuir** um campo. Uma `list` guardada num campo continua aceitando `append`.
+
+**E a consequência que vale citar é que o Python avisa:** o `__hash__` gerado hasheia a tupla dos campos, e uma lista não é hasheável — então o objeto "congelado" com lista dentro falha em `hash()` na hora, em vez de sumir silenciosamente de um `set` como no caso do 04.12. A solução é `tuple`.
+
+**Se o entrevistador insistir:** a garantia é de **uma camada**. Uma tupla contendo outro objeto mutável hasheável por identidade passa no `hash()` e a imutabilidade vira ficção.
+
+### P52 — "Onde você põe validação numa dataclass?" `[julgamento — arquitetura]`
+
+`__post_init__`, para **invariantes locais** — o que se verifica olhando só para os campos: quantidade positiva, preço não-negativo, categoria dentro de uma lista fixa.
+
+**O que não vai lá:** qualquer regra que precise do mundo externo. Validar que um SKU existe no catálogo exigiria consultar o banco **dentro do construtor** — o objeto passaria a fazer I/O para se construir, testá-lo exigiria um banco, e montar mil itens faria mil consultas.
+
+Essa regra vai para a camada que já tem a conexão. A separação tem nome (domínio × infraestrutura) e é o mesmo princípio que diz para não pôr I/O dentro de `@property`.
+
+**E o limite honesto do `__post_init__`:** se ele passa de dez linhas, você está escrevendo um validador à mão. Existe biblioteca para isso, e o argumento a favor dela é a contagem de linhas que o mini projeto deste capítulo pede para você fazer.

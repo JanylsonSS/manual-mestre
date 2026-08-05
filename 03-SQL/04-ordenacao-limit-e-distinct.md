@@ -32,7 +32,7 @@ Há outras três perguntas que este capítulo resolve, e todas aparecem no prime
 
 **"Quais os cinco produtos mais caros?"** — exige ordenar e cortar, e cortar sem ordenar não significa nada.
 
-**"Em quais cidades temos clientes?"** — exige eliminar repetições. E o `DISTINCT`, que parece a resposta óbvia, tem um comportamento que surpreende: ele age sobre a **linha inteira**, não sobre a coluna que você quer distinguir.
+**"Em quais cidades temos clientes?"** — exige eliminar repetições. E o `DISTINCT`, que parece a resposta imediata, tem um comportamento que surpreende: ele age sobre a **linha inteira**, não sobre a coluna que você quer distinguir.
 
 **"Por que a coluna do relatório se chama `preco_centavos / 100.0`?"** — porque ninguém deu nome a ela. O `AS` resolve, e a diferença entre uma consulta legível e uma ilegível costuma ser esse detalhe.
 
