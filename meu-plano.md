@@ -24,3 +24,21 @@ CP1 é o primeiro checkpoint antes de avançar para o proximo ~~modulo~~ capitul
 ## O teto de capitulos por dia
 
 O limite de 2 capítulos novos por dia protege contra a ilusão de fluência que a maratona produz.
+
+
+```text
+============================================
+ Manual Mestre — Validação de ambiente
+============================================
+[OK]    Python 3.14.0 (>= 3.12 exigido)
+[OK]    Interpretador encontrado no PATH
+[OK]    Git encontrado: git version 2.49.0.windows.1
+[OK]    Sistema: Windows 10 (64 bits)
+--------------------------------------------
+Veredito: AMBIENTE APROVADO — 4/4 checagens.
+Bem-vindo(a) à trilha. Registre no PROGRESSO.md!
+============================================
+```
+ 
+''''
+

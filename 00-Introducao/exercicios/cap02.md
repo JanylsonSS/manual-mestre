@@ -8,21 +8,27 @@ Regra dos 15 minutos antes da Dica 1. Gabaritos em [`gabaritos/cap02.md`](gabari
 
 **Tarefa.** Para cada tarefa, indique o papel dono natural (backend, engenharia de dados ou DevOps):
 
-1. Criar o endpoint que o aplicativo chama para cadastrar clientes.
-2. Fazer o relatório de vendas consolidado chegar atualizado toda manhã às 7h.
-3. Automatizar a publicação de uma nova versão do sistema a cada aprovação.
-4. Investigar por que 3% dos pedidos importados vieram com CPF em branco.
-5. Garantir que a senha do usuário seja verificada com segurança no login.
-6. Configurar o alerta que avisa quando o servidor passa de 90% de memória.
+1. Criar o endpoint que o aplicativo chama para cadastrar clientes.  Backend(endpoint = API)
+2. Fazer o relatório de vendas consolidado chegar atualizado toda manhã às 7h. Engenharia de dados (pipeline agendado)
+3. Automatizar a publicação de uma nova versão do sistema a cada aprovação. DevOps(CI/CD).
+4. Investigar por que 3% dos pedidos importados vieram com CPF em branco. Engenharia de dados** (qualidade de dados na ingestão)
+5. Garantir que a senha do usuário seja verificada com segurança no login. Backend*(autenticação é regra da aplicação)
+6. Configurar o alerta que avisa quando o servidor passa de 90% de memória. DevOps (monitoramento)
 
 ### A2 — Endereço no mapa `[Aquecimento · ~5 min · tecnologias]`
 
-**Tarefa.** De memória, posicione no território correto (backend / dados / operação / banco / base transversal): FastAPI, Airflow, Docker, PostgreSQL, Pandas, Git, Nginx, Redis. Depois confira na tabela da seção 6.
+**Tarefa.** De memória, posicione no território correto (backend / dados / operação / banco / base transversal): FastAPI, Airflow, Docker, PostgreSQL, Pandas, Git, Nginx, Redis. Depois confira na tabela da seção 6.  
+FastAPI → backend · Airflow → dados · Docker → operação · PostgreSQL → banco · Pandas → dados · Git → base transversal · Nginx → operação · Redis → backend/dados (dupla cidadania: cache e filas).
 
 ### A3 — Dentro ou fora da trilha? `[Aquecimento · ~5 min · fronteiras]`
 
-**Tarefa.** Classifique como "coberto" ou "deliberadamente fora", justificando em 1 linha: React, Alembic, machine learning, Kubernetes, scraping com Selenium.
+**Tarefa.** Classifique como "coberto" ou "deliberadamente fora", justificando em 1 linha: React, Alembic, machine learning, Kubernetes, scraping com Selenium.   
 
+- React — **fora** (frontend; a trilha entrega a API que um React consumiria).
+- Alembic — **coberto** (migrações de banco, 05.10).
+- Machine learning — **fora** (ciência de dados; a trilha constrói a esteira que o alimenta).
+- Kubernetes — **fora** (infraestrutura avançada; a trilha para em Docker/Compose + deploy).
+- Scraping com Selenium — **coberto** (10.17).
 ## Aplicação
 
 ### AP1 — Tradução de vaga real `[Aplicação · ~25 min · leitura de mercado]`

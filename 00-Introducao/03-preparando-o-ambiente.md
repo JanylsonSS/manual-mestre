@@ -437,19 +437,19 @@ Requisitos numerados:
 
 Perguntas de domínio — teste do sim:
 
-- [ ] Sei explicar *o papel de cada uma das três peças do ambiente*?
-- [ ] Sei explicar *o que é o PATH e por que "não reconhecido" raramente significa "não instalado"*?
-- [ ] Sei executar *um script Python pelo terminal, a partir da raiz do repositório*?
-- [ ] Sei depurar *os três erros clássicos da seção 11 (diagnóstico em ordem de hipótese barata)*?
-- [ ] Sei responder *à pergunta de entrevista sobre "comando não encontrado"*?
+- [x] Sei explicar *o papel de cada uma das três peças do ambiente*?
+- [x] Sei explicar *o que é o PATH e por que "não reconhecido" raramente significa "não instalado"*?
+- [x] Sei executar *um script Python pelo terminal, a partir da raiz do repositório*?
+- [x] Sei depurar *os três erros clássicos da seção 11 (diagnóstico em ordem de hipótese barata)*?
+- [x] Sei responder *à pergunta de entrevista sobre "comando não encontrado"*?
 
 Itens práticos:
 
-- [ ] Segui o guia do meu sistema em `Recursos/ambiente/` do início ao fim.
-- [ ] `python --version`, `git --version` e `code --version` respondem no meu terminal.
-- [ ] Rodei `valida_ambiente.py` e obtive veredito APROVADO 4/4.
-- [ ] As 2 extensões estão instaladas e o Mermaid da seção 8 renderiza na pré-visualização.
-- [ ] Completei o mini projeto "Certidão da oficina" e registrei tudo no `PROGRESSO.md`, com as 4 revisões agendadas.
+- [x] Segui o guia do meu sistema em `Recursos/ambiente/` do início ao fim.
+- [x] `python --version`, `git --version` e `code --version` respondem no meu terminal.
+- [x] Rodei `valida_ambiente.py` e obtive veredito APROVADO 4/4.
+- [x] As 2 extensões estão instaladas e o Mermaid da seção 8 renderiza na pré-visualização.
+- [x] Completei o mini projeto "Certidão da oficina" e registrei tudo no `PROGRESSO.md`, com as 4 revisões agendadas.
 
 ---
 

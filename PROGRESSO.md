@@ -8,7 +8,7 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 |---|---|
 | Fase | 1 — Fundamentos |
 | Módulo | 00 — Introdução |
-| Próximo capítulo | 00.03 |
+| Próximo capítulo | 00.04 |
 
 ## Diário
 
@@ -16,6 +16,9 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 |---|---|---|---|---|
 | 01/08/26 | 00.01 | novo | | |
 | 03/08/26 | 00.02 | novo | | |
+| 03/08/26 | 00.01 | revisão D+1 | | |
+| 04/08/26 | 00.03 | novo | Ambiente Pronto | |
+| 04/08/26 | 00.02 | revisão D+1 | | |
 
 ## Reprovações e retomadas
 
