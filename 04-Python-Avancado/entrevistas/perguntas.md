@@ -219,3 +219,124 @@ Pipeline de geradores, uma passada, `with` para fechar o arquivo. Trocar colchet
 Dados pequenos percorridos **várias** vezes (paga a produção a cada passada, e esgota na segunda); quando precisa de `len()` ou índice; e — o que quase ninguém cita — quando a coleção vai ser testada com `in` repetidamente: o gerador esgota no primeiro teste e passa a responder `False` para tudo. Aí a resposta certa nem é lista, é `set`.
 
 **E o caso arquitetural:** quando o **estado da iteração** faz parte da interface. Um leitor com retomada ("continue do bloco 47") precisa expor a posição, e o quadro congelado de um gerador é inacessível de fora. Duas classes — iterável e iterador — devolvem esse acesso.
+
+### P25 — "O que é `self`?" `[conceitual — parece básica e revela o modelo mental]`
+
+O parâmetro que recebe a instância. **`objeto.metodo()` é açúcar para `Classe.metodo(objeto)`** — demonstrar as duas formas produzindo o mesmo resultado encerra a pergunta.
+
+**O mecanismo:** `Classe.metodo` é uma `function` comum; acessá-la **através de uma instância** produz um `bound method`, um objeto que guarda a função e a instância. `objeto.metodo.__self__` é a instância.
+
+**A consequência prática:** `fn = objeto.metodo; fn()` funciona sem passar nada — o método já viaja vinculado. É o que permite passar `objeto.metodo` como *callback* sem perder o `self`.
+
+**E `self` não é palavra reservada** — é convenção universal, e quebrá-la é custo sem ganho.
+
+### P26 — "Qual a diferença entre atributo de classe e de instância?" `[conceitual — com armadilha]`
+
+Um por classe, compartilhado; um por objeto, próprio.
+
+**A armadilha que a boa resposta traz:** um **mutável** como atributo de classe vaza. `tags = []` no corpo da classe é **uma** lista para todas as instâncias, e `Classe.tags is a.tags is b.tags` é `True`. É o mesmo mecanismo do default mutável em funções — o objeto é criado uma vez, na definição.
+
+**A sutileza que separa:** `self.tags.append(x)` **muta** o objeto compartilhado e vaza; `self.tags = self.tags + [x]` **reatribui** e cria um atributo de instância, sem vazar. Mutar × atribuir, de novo.
+
+**Quando atributo de classe é correto:** constantes imutáveis (`LIMITE = 100`) e contadores deliberadamente globais — e nesse caso escreva `Classe.contador += 1`, não `self.contador += 1`, senão a primeira atribuição cria um atributo de instância e a contagem para em 1.
+
+### P27 — "Quando usar dicionário em vez de classe?" `[julgamento]`
+
+**Dicionário** para dados de passagem — vieram de JSON, vão para JSON, ninguém opera no meio —, campos dinâmicos e serialização direta. Converter e reconverter é trabalho sem retorno.
+
+**Classe** quando há comportamento junto do dado, campos fixos, ou o mesmo dado circula por muitas funções.
+
+**O critério contável que impressiona:** conte quantas funções recebem aquele dicionário e assumem as mesmas chaves. **Uma ou duas, dicionário serve; três ou mais, são métodos procurando uma classe.**
+
+**O que mudou nos últimos anos:** `@dataclass` e Pydantic tornaram classes de dados baratas. O argumento "classe dá trabalho demais para um dado simples" era forte e hoje é fraco — uma dataclass custa uma linha a mais e entrega `repr`, comparação e validação.
+
+### P28 — "`__init__` é o construtor?" `[conceitual — pega quem decorou]`
+
+**Não.** É o **inicializador**: recebe um objeto que **já existe** e o preenche. Quem constrói é `__new__`, que aloca e devolve a instância.
+
+`Classe(args)` chama `type.__call__`, que chama `__new__` e depois `__init__`. Daí `__init__` não poder devolver nada além de `None` — devolver outra coisa levanta `TypeError`.
+
+**Onde isso importa na prática:** `__new__` é o que se sobrescreve para implementar singletons, para subclasses de tipos imutáveis (`int`, `str`, `tuple`) e para controlar cache de instâncias. É raro, e saber que existe explica por que a distinção não é pedantismo.
+
+### P29 — "Qual a diferença entre `classmethod` e `staticmethod`?" `[conceitual — com teste]`
+
+`classmethod` recebe `cls`, a **classe pela qual foi chamado**; `staticmethod` não recebe nada.
+
+**O teste que resolve a pergunta na prática — herança.** Com uma subclasse vazia:
+
+```
+ProdutoDigital.do_banco (classmethod)  -> ProdutoDigital   ✓
+ProdutoDigital.do_banco (staticmethod) -> Produto          ✗
+```
+
+O `staticmethod` cita o nome da classe, fixo desde a definição. **A regra: todo construtor alternativo é `classmethod`, sem exceção** — mesmo sem subclasses hoje, porque o defeito não levanta erro, só faz circular um objeto do tipo errado.
+
+**O cenário que mostra o dano:** `ProdutoDigital.entregar()` manda um link; `Produto.entregar()` gera etiqueta física. Com o tipo errado, o sistema gera etiquetas de envio para e-books — sem exceção, sem traceback, e o defeito aparece na operação, não no código.
+
+### P30 — "Como você contaria quantas instâncias foram criadas?" `[caso prático — com armadilha]`
+
+Atributo de classe incrementado no `__init__` — **com `Classe.contador += 1`, nunca `self.contador += 1`**.
+
+**O que acontece com `self`:** a expressão vira `self.contador = self.contador + 1`. A leitura acha `0` na classe; a atribuição cria um atributo de **instância**. `Classe.contador` **nunca é tocado** e fica em zero, para sempre.
+
+**O detalhe que impressiona:** o resultado não é "para em 1" — é **zero**. Cada instância tem o próprio `1`, e a classe nunca sabe de nada. Um contador que não conta, sem erro nenhum.
+
+### P31 — "Quando usar `staticmethod`?" `[julgamento]`
+
+Quando a função é do assunto da classe **e** uma subclasse pode querer sobrescrevê-la. Fora disso, função de módulo.
+
+**A pergunta honesta que a resposta forte faz:** se o método não usa nem o objeto nem a classe, por que está na classe? "Coesão" é resposta legítima; "para organizar" costuma indicar uma classe que deveria ser um módulo.
+
+**O sinal de alerta:** uma classe com oito `@staticmethod` e nenhum atributo de instância não é uma classe — é um módulo com sintaxe pior. É o padrão mais reconhecível de código escrito com hábitos de Java, onde tudo precisa estar numa classe. Em Python, funções de módulo são cidadãs de primeira classe.
+
+### P32 — "O que acontece ao atribuir um atributo de classe pela instância?" `[previsão]`
+
+Cria um atributo de **instância** que **sombreia** o da classe. A classe fica intacta, e as outras instâncias continuam vendo o valor dela.
+
+**A sequência completa, que vale demonstrar:**
+
+```
+inicial:      a.T=1  b.T=1  C.T=1
+a.T = 9   ->  a.T=9  b.T=1  C.T=1
+C.T = 5   ->  a.T=9  b.T=5  C.T=5     <- `a` não muda: está sombreado
+del a.T   ->  a.T=5  b.T=5  C.T=5     <- o sombreamento acabou
+del b.T   ->  AttributeError            <- `b` nunca teve o próprio
+```
+
+**O que isso implica:** um sombreamento acidental **silencia** futuras mudanças da classe — o objeto para de acompanhar a configuração global e ninguém percebe. E `del` na instância nunca alcança a classe, o que é uma proteção.
+
+### P33 — "Python tem atributos privados?" `[conceitual — a resposta completa tem três partes]`
+
+**Não.** `_nome` é convenção pura — o interpretador não faz nada com ele, exceto omiti-lo de `import *`. `__nome` sofre *name mangling*: vira `_Classe__nome`, e continua acessível.
+
+**A prova:** `objeto.__dict__` mostra `{'_Conta__secreto': 'mangle'}`. Não há ocultação; há um nome menos conveniente.
+
+**E o que separa a resposta boa da ótima:** o mangling **não existe para privacidade** — existe para evitar **colisão em herança**. `Base.__estado` e `Filha.__estado` viram `_Base__estado` e `_Filha__estado`, e coexistem no mesmo objeto. Sem isso, a subclasse sobrescreveria o atributo da mãe sem saber.
+
+**A filosofia:** encapsulamento em Python protege contra **engano**, não contra intenção. A garantia de verdade sobre um dado está no banco, com uma constraint que vale para todos os caminhos de escrita.
+
+### P34 — "Para que serve `@property`?" `[conceitual — com o caso de uso decisivo]`
+
+Interceptar leitura e escrita de um atributo **sem mudar a interface** de quem usa a classe.
+
+**O caso que mostra o valor:** uma classe em produção, usada em 40 lugares, precisa validar um campo. Com `property`, **zero** dessas 40 linhas mudam — elas continuam escrevendo `produto.preco = x`, e agora a atribuição valida. Com `set_preco()`, mudariam 40, e o risco não é o trabalho: é esquecer uma.
+
+**É por isso que Python dispensa getters e setters preventivos.** Em linguagens sem esse recurso, escreve-se `getPreco()` desde o início "por precaução" — verbosidade em 100% dos casos para servir em 5%. Em Python, começa-se com atributo simples e converte-se no dia em que precisar.
+
+**O detalhe que pega:** o `__init__` deve atribuir ao nome **público** (`self.preco = x`), para passar pelo setter. Escrever `self._preco` direto contorna a própria validação.
+
+### P35 — "Quando NÃO usar property?" `[julgamento]`
+
+**Getter que apenas repassa** `self._x`, sem validar — é verbosidade com custo medido: 105,4 ms contra 72,7 ms por um milhão de leituras (~45%).
+
+**Qualquer coisa cara ou com I/O.** `cliente.dados_completos` que consulta o banco parece um atributo — gratuito, seguro de acessar num laço — e alguém vai escrevê-lo dentro de um `for`, fazendo `n` consultas. **A interface deve sugerir o custo:** property para o barato, método com nome de verbo para o caro.
+
+**É o mesmo princípio** do `__len__` que faz I/O e do `do_banco` que abre conexão: três formas de esconder custo atrás de uma sintaxe que promete gratuidade.
+
+### P36 — "O que `__slots__` faz?" `[conceitual — com a armadilha]`
+
+Substitui o `__dict__` da instância por um vetor de tamanho fixo: **recusa atributos não declarados** (a única defesa contra `self.prceo = 10`) e economiza memória — medido, 55%: 37,6 MB → 16,8 MB para 200 mil objetos de três campos.
+
+**Custo:** sem `__dict__`, sem atributos dinâmicos, atrito com herança múltipla e com bibliotecas que esperam `__dict__`.
+
+**A armadilha que quase ninguém menciona:** uma subclasse que **não** declara `__slots__` recupera o `__dict__` — e com ele, a capacidade de aceitar qualquer atributo. Toda a proteção da mãe desaparece na primeira subclasse distraída, e a economia de memória também. **A garantia é local à classe, não à hierarquia** — toda classe da cadeia precisa declarar, inclusive as vazias, com `__slots__ = ()`.
