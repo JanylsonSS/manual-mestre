@@ -338,7 +338,7 @@ Se um dia isso importar, o caminho não é evitar `*args`: é reduzir o número 
 
 `*args, **kwargs` é onipatente em código de biblioteca, e a razão é a compatibilidade: uma função que repassa tudo continua funcionando quando a função interna ganha parâmetros novos.
 
-Em código de aplicação, o uso excessivo é sinal de alerta — uma função cuja assinatura é `(*args, **kwargs)` não documenta nada, e o leitor precisa ler o corpo para descobrir o que ela aceita. **A pergunta que separa o bom uso do ruim: você está repassando para outra função, ou evitando decidir?**
+Em código de aplicação, o uso excessivo é sinal de alerta — uma função cuja assinatura é `(*args, **kwargs)` não documenta nada, e quem for usá-la precisa ler o corpo para descobrir o que ela aceita. **A pergunta que separa o bom uso do ruim: você está repassando para outra função, ou evitando decidir?**
 
 O default mutável, por sua vez, é pergunta frequente em entrevista de Python — porque revela se a pessoa entende que argumentos são referências, e não cópias.
 

@@ -1,0 +1,5 @@
+# Dependências para RODAR o projeto.
+# Versões fixadas com == : instalar hoje e daqui a seis meses
+# produz o mesmo ambiente (§6.6).
+pydantic==2.13.4
+pydantic-settings==2.7.0

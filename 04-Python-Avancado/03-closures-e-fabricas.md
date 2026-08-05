@@ -129,7 +129,7 @@ def fabricar(valor):
 
 Cada chamada de `fabricar` cria um **escopo novo**, com sua própria variável `valor` e sua própria célula. Três chamadas, três células, três valores.
 
-**Qual usar?** A fábrica é mais verbosa e mais honesta — a assinatura não mente. O default é mais curto e idiomático em código pequeno. **Em código que outra pessoa mantém, prefira a fábrica**, porque `lambda i=i: i` exige que o leitor conheça exatamente esta armadilha para entender por que o parâmetro existe.
+**Qual usar?** A fábrica é mais verbosa e mais honesta — a assinatura não mente. O default é mais curto e idiomático em código pequeno. **Em código que outra pessoa mantém, prefira a fábrica**, porque `lambda i=i: i` exige conhecer exatamente esta armadilha para entender por que o parâmetro existe.
 
 ### 6.3 `nonlocal` — estado que sobrevive
 

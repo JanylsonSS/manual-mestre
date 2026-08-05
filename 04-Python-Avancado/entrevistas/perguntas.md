@@ -490,3 +490,153 @@ O motivo encadeia com a pergunta anterior sobre `__eq__`: definir igualdade por 
 Essa regra vai para a camada que já tem a conexão. A separação tem nome (domínio × infraestrutura) e é o mesmo princípio que diz para não pôr I/O dentro de `@property`.
 
 **E o limite honesto do `__post_init__`:** se ele passa de dez linhas, você está escrevendo um validador à mão. Existe biblioteca para isso, e o argumento a favor dela é a contagem de linhas que o mini projeto deste capítulo pede para você fazer.
+
+### P53 — "O Python verifica type hints em execução?" `[conceitual — a primeira sobre tipos]`
+
+**Não.** A anotação é avaliada na definição da função, guardada num dicionário chamado `__annotations__` e nunca mais consultada. `def dobrar(n: int)` chamada com `"ab"` devolve `'abab'`, sem aviso.
+
+**A prova que fecha a resposta é uma medição:** chamar um milhão de vezes leva 67,6 ms com anotação e 69,1 ms sem — dentro do ruído, porque no momento da chamada não há nada a conferir. O custo existe, e é o de **definir** a função.
+
+**E o complemento que mostra experiência:** há bibliotecas em que a anotação passa a ter efeito em execução — Pydantic, FastAPI, SQLAlchemy 2.0. Nelas a anotação deixou de ser documentação e virou parte do funcionamento, e é por isso que a pergunta aparece.
+
+### P54 — "O mypy não achou nada. O código está correto?" `[julgamento — a pergunta que separa]`
+
+**Não necessariamente**, e as duas razões são independentes.
+
+**`Any` desliga a verificação.** Uma função `def processar(dados: Any) -> Any` pode chamar métodos inexistentes que nada é relatado — nem em `--strict`. E o retorno `Any` contamina quem o recebe.
+
+**Função sem anotação não é verificada.** Nem a chamada, nem o corpo. E forçar com `--check-untyped-defs` também não encontra nada, porque parâmetro sem anotação **é** `Any`: não há o que conferir.
+
+**A conclusão prática:** num projeto meio tipado, "Success" mede quanto do código está anotado, não quanto está correto. Quem mostra a diferença é `--strict`, que recusa a função sem anotação com `[no-untyped-def]`.
+
+### P55 — "O que é `Protocol`?" `[conceitual — tipagem estrutural]`
+
+Tipagem **estrutural**: descreve o que o objeto precisa **ter**, não de quem precisa **herdar**. Uma classe que implementa `calcular(self, produto) -> int` satisfaz o protocolo sem herdar de nada.
+
+É duck typing com conferência — e o diagnóstico é preciso: uma classe cujo `calcular` devolve `str` é recusada, com "Expected" e "Got" lado a lado.
+
+**O detalhe que separa quem usou de quem leu:** para usar `isinstance` com um protocolo, ele precisa de `@runtime_checkable` — sem isso, o interpretador levanta `TypeError`. E com ele, `isinstance` confere apenas que o **método existe**, não a assinatura: a classe com o retorno errado passa em `isinstance` e é recusada pelo verificador. As duas conferências são diferentes e nenhuma substitui a outra.
+
+### P56 — "Type hints substituem testes?" `[julgamento]`
+
+Não. Eles pegam **incompatibilidade de tipo**; não pegam **lógica errada com os tipos certos**. `total = preco + desconto` onde deveria ser `-` passa em qualquer verificador, porque os dois são `int`.
+
+**O que eles pegam melhor que teste:** a categoria `X | None`, que só falha quando o dado ausente aparece — e um teste só a pega se alguém tiver lembrado de escrever o caso do "não achou".
+
+**O que teste pega e verificador não:** tudo o que vem de fora. O verificador lê o **seu** código, não o dado do cliente. Uma função que recebe JSON tipado como `dict[str, Any]` está tão desprotegida quanto antes, e é por isso que existe validação em execução na fronteira do sistema.
+
+A resposta completa é que eles resolvem problemas diferentes e o custo de manter os dois é menor que o de manter um só e descobrir a lacuna em produção.
+
+### P57 — "Pydantic ou dataclass?" `[julgamento — a pergunta de arquitetura]`
+
+**Modelo na borda, dataclass no núcleo.** A borda é onde o dado chega de fora: HTTP, formulário, CSV, fila, variável de ambiente. O núcleo é onde ele já foi conferido.
+
+**E a resposta fica muito melhor com os números.** Criar um `BaseModel` a partir de um dicionário custa 234,9 ms por 200 mil contra 92,9 ms da dataclass — 2,5×. Mas na fronteira o sinal inverte: `model_validate_json` leva 278,8 ms contra 518,5 ms de `json.loads` + construção, e `model_dump_json` leva 505,6 ms contra 1848,1 ms de `json.dumps(asdict(...))`. Validar onde o dado chega é justamente onde o Pydantic **paga**, porque o JSON é analisado e gerado em Rust.
+
+O que ele cobra é o acesso: 48% a mais para ler um atributo. Numa borda que valida uma vez e num núcleo que lê milhões de vezes, essa assimetria **é** o argumento da separação.
+
+**O erro que a pergunta quer detectar** é validar de novo em cada camada. A segunda validação não protege nada e é a que vai divergir da primeira.
+
+### P58 — "O que acontece com um campo a mais no JSON?" `[conceitual — quem já foi mordido responde na hora]`
+
+Por padrão, **é descartado em silêncio**. E o caso que dói não é o campo a mais: é o **erro de digitação num campo que tem default**.
+
+`descconto_centavos=5000` — com um `c` a mais — passa sem erro, o campo desconhecido é jogado fora e `desconto_centavos` fica no default. **Um desconto de R$ 50,00 desaparece sem erro, aviso ou log.** Num campo obrigatório apareceria "Field required"; num campo com default, nada.
+
+A correção é uma linha: `model_config = ConfigDict(extra="forbid")`, e a mensagem passa a nomear o campo desconhecido.
+
+**A resposta completa acrescenta o outro lado:** há casos em que ignorar é o comportamento certo — consumir um webhook de terceiro que acrescenta campos sem avisar, por exemplo. A decisão é sobre quem controla o contrato, não sobre segurança em abstrato.
+
+### P59 — "Por que `\"8990\"` vira `8990`?" `[conceitual — coerção]`
+
+Porque na borda **tudo chega como texto**: parâmetro de URL, campo de formulário, célula de CSV, variável de ambiente. Uma biblioteca de validação que recusasse texto num campo `int` seria inútil onde ela mais serve.
+
+**A regra da conversão é que nada pode se perder.** `8990.0` passa; `8990.7` é recusado com `int_from_float`, porque arredondar seria adivinhar.
+
+**O caso que vale citar, e que separa quem usou de quem leu:** `True` vira `1`. Um campo `preco_centavos` que receba `True` produz um preço de **um centavo**, sem erro nenhum — é herança do Python, onde `bool` é subclasse de `int`.
+
+Quem não quer nada disso liga `ConfigDict(strict=True)`. O critério: estrito entre serviços seus, onde o dado já deveria estar tipado; padrão na borda humana.
+
+### P60 — "Como você trata um erro de validação numa API?" `[prático — a resposta que o FastAPI já dá]`
+
+O `ValidationError` não é só texto: `erro.errors()` devolve uma **lista de dicionários** com `type`, `loc`, `msg` e `input`, com **todos** os problemas de uma passagem.
+
+**O `loc` é o que resolve o problema de verdade.** Ele é o caminho até o campo: `('itens', 1, 'quantidade')` significa lista `itens`, posição 1, campo `quantidade`. Num pedido com quarenta itens, essa tupla é a diferença entre corrigir em trinta segundos e caçar por meia hora — e, mais importante, ela é **navegável por código**: um formulário web percorre o `loc` para acender o campo certo na tela, em vez de interpretar português.
+
+É exatamente essa estrutura que o FastAPI serializa numa resposta `422`.
+
+**O detalhe que mostra experiência:** ao agrupar ou contar erros, use o `type`, não a `msg`. O `type` é identificador estável e documentado — a URL que aparece em toda mensagem do Pydantic é construída a partir dele. A `msg` é texto para humanos e muda de redação entre versões, o que faz um relatório baseado nela quebrar em silêncio numa atualização.
+
+### P61 — "Por que ambiente virtual?" `[conceitual — espera o cenário, não a definição]`
+
+Porque **um interpretador tem um conjunto de bibliotecas**, com uma versão instalada por pacote. Enquanto todos os seus projetos couberem nesse conjunto, não há problema; o primeiro que não couber quebra o anterior.
+
+**O cenário concreto vale mais que a definição.** Projeto antigo em produção com Pydantic 1, projeto novo com Pydantic 2. Instalando os dois no mesmo lugar, o `pip` **rebaixa sem erro nenhum** — e o projeto novo para de funcionar no instante em que você instalou a dependência do antigo, com um `AttributeError` que aparece só na execução seguinte e não aponta para a causa.
+
+**E o detalhe que mostra que você olhou:** depois do rebaixamento, `pydantic_core` da versão 2 fica órfão no ambiente. O estado resultante não é descrito por nenhum `requirements.txt` — nem o de um projeto, nem o do outro.
+
+### P62 — "O que o `activate` faz?" `[conceitual — quase todo mundo erra]`
+
+**Só mexe no `PATH`.** Ele põe `.venv/bin` na frente, guarda o `PATH` antigo para o `deactivate` restaurar, e define `VIRTUAL_ENV` para exibição. Nenhum processo em segundo plano, nada global, nada que sobreviva a fechar o terminal.
+
+A consequência prática é que **chamar `.venv/bin/python` direto é equivalente** — o interpretador descobre onde procurar bibliotecas a partir do próprio caminho, achando um `pyvenv.cfg` ao lado. É o que fazem editores, agendadores e servidores de integração contínua, que não ativam nada.
+
+**E daí sai a resposta para "como detectar se estou num ambiente":** `sys.prefix != sys.base_prefix`, que funciona nas duas formas. `$VIRTUAL_ENV` só existe se alguém digitou `activate`, e um script que dependa dele recusa um uso perfeitamente correto.
+
+### P63 — "O que você põe num `requirements.txt`?" `[julgamento — a resposta madura distingue dois níveis]`
+
+**O que você escolheu, fixado com `==`.** E dois arquivos: `requirements.txt` com as dependências de execução, `requirements-dev.txt` começando com `-r requirements.txt` e acrescentando o que só a sua máquina precisa.
+
+**Nunca `>=` sozinho.** `pydantic>=2.0` aceita a versão 3.0.0, que por convenção é justamente a que quebra compatibilidade — o projeto para de funcionar sem que ninguém tenha mudado uma linha.
+
+**Sobre `pip freeze > requirements.txt`:** ele reproduz melhor e documenta pior. Fixa também as transitivas, e seis meses depois ninguém distingue o que você escolheu do que veio arrastado — atualizar uma linha vira arqueologia. A saída organizada é um arquivo de entrada e um gerado (`pip-tools`, `uv`).
+
+**O limite honesto do `==`:** ele fixa o que você nomeou, não o resto. O Pydantic 2.13.4 fixa o `pydantic-core`, mas declara `typing-extensions>=4.14.1` — que continua livre para mudar entre duas instalações do mesmo arquivo.
+
+### P64 — "Dá para copiar um `.venv` para outra máquina?" `[prático]`
+
+**Não**, por dois motivos independentes.
+
+Os executáveis de `bin/` têm o **caminho absoluto gravado na primeira linha**. Renomear a pasta já é suficiente para quebrá-los: `bad interpreter: No such file or directory`.
+
+E pacotes compilados são específicos de sistema operacional e arquitetura — um ambiente de Linux não funciona no Windows nem com os caminhos corrigidos.
+
+**O detalhe que rende a conversa:** na pasta renomeada, o `pip` quebra e o **`python` continua funcionando**. O interpretador descobre o prefixo a partir do próprio caminho de execução; os scripts o têm escrito dentro. Descobrir sobrevive a mudar de lugar; ter gravado, não.
+
+O que se transporta é o `requirements.txt`. Duas linhas reconstroem 3.524 arquivos.
+
+### P65 — "Por que layout `src/`?" `[julgamento — separa quem leu de quem foi mordido]`
+
+Porque sem ele o pacote é encontrado **por acidente**: a pasta do projeto está no `sys.path`, então um módulo solto na raiz é importado com sucesso e **nunca entra no pacote**. O código funciona na sua máquina e dá `ModuleNotFoundError` na de quem instala — nada errado no código, nada errado na instalação, o defeito estava na organização.
+
+Com `src/`, `import aurora` não funciona antes de instalar, nem de dentro da pasta do projeto. Parece um estorvo e é a característica inteira: você é obrigado a instalar, e passa a alcançar o pacote pelo mesmo caminho que qualquer pessoa vai usar.
+
+**A resposta que mostra experiência acrescenta o limite:** `src/` garante que **o pacote** venha da instalação, e a pasta atual continua no `sys.path` em `-c`, `-m` e sob o `pytest`. Um módulo solto ainda vaza se você rodar da raiz — e um `pytest` verde não prova nada, porque ele passa nos dois layouts com o defeito presente. O teste barato é sair da pasta e rodar de novo; o completo é instalar sem `-e` num ambiente novo.
+
+### P66 — "O `__init__.py` ainda é necessário?" `[conceitual — a resposta mudou em 2012 e quase ninguém atualizou]`
+
+**Não** para a pasta ser um pacote — desde o Python 3.3 uma pasta sem ele funciona como *pacote de espaço de nomes* (PEP 420).
+
+**Sim** por dois outros motivos, e o primeiro é o que dói: sem `__init__.py`, duas pastas de **mesmo nome** em lugares diferentes do `sys.path` **se fundem num pacote só**. `__path__` passa a ter as duas, e um módulo de uma pasta esquecida vira importável como se pertencesse ao seu pacote. Com o arquivo, a primeira ganha e a segunda é ignorada.
+
+O segundo motivo é a **API pública**: reexportar os nomes que interessam e declarar `__all__` faz quem abre o arquivo entender o pacote em trinta segundos.
+
+**O teste de bolso:** `pacote.__file__` valendo `None` é o sinal de que não há `__init__.py`.
+
+### P67 — "O que `pip install -e .` faz?" `[prático]`
+
+Registra um **ponteiro** para o seu `src/` no ambiente, em vez de copiar os arquivos para o `site-packages`. Editar o código tem efeito imediato.
+
+**A distinção que economiza uma tarde:** acrescentar um **módulo** ao pacote funciona sem reinstalar; acrescentar uma **dependência** ao `pyproject.toml`, não — dependência é lida no momento da instalação. O sintoma é um `ModuleNotFoundError` para algo que está visivelmente declarado no arquivo.
+
+**E o complemento:** `pip install .`, sem o `-e`, é o modo do cliente — ele **copia**, e por isso mostra exatamente o que entra no pacote e o que fica de fora. É o teste que revela o módulo solto da pergunta sobre `src/`.
+
+### P68 — "Como você resolveria um import circular?" `[julgamento — a resposta comum é a errada]`
+
+A mensagem já diz o problema: `cannot import name 'alfa' from partially initialized module`. *Parcialmente inicializado* significa que, quando `b` pediu `alfa`, o módulo `a` estava na primeira linha e ainda não tinha definido nada.
+
+**A saída comum é mover o `import` para dentro da função**, e ela funciona — adiando o problema. O ciclo continua lá, agora invisível, e volta na primeira vez que alguém importar os dois módulos numa ordem diferente.
+
+**A correção real é de desenho.** Dois módulos que precisam um do outro em tempo de importação quase sempre são: **um módulo só**, artificialmente dividido; ou **dois com um terceiro faltando**, que deveria conter o que ambos usam.
+
+Há um caso legítimo para adiar o import: quebrar o ciclo que existe **apenas por causa de anotações de tipo**, com `from __future__ import annotations` ou `if TYPE_CHECKING:`. Aí não é gambiarra — é dizer que a dependência é do verificador, não da execução.

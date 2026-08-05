@@ -94,7 +94,7 @@ Assinatura: `(a, /, b, c=3, *, d, e=5)`
 obrigatórios (sem default) e `d` é obrigatório **e** keyword-only. `c` e `e` têm padrão.
 
 **A leitura que vale levar:** a assinatura comunica quatro categorias distintas de parâmetro —
-obrigatório-posicional, flexível, opcional, e obrigatório-nomeado — e o leitor descobre isso
+obrigatório-posicional, flexível, opcional, e obrigatório-nomeado — e quem chama descobre isso
 **sem abrir o corpo da função**. É esse o argumento a favor de usar `/` e `*` com intenção.
 
 ## AP1 — O repasse

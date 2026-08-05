@@ -148,7 +148,7 @@ type(.nome): int <- ninguém reclamou
 
 O objeto existe, o `repr` funciona, o `==` funciona. O erro vai aparecer três camadas adiante, quando alguém fizer `produto.nome.strip()`.
 
-> **Caixa-preta 1 — o que é `nome: str`, exatamente?** É uma **anotação de tipo**. O Python a guarda em `Produto.__annotations__` e não a usa para nada; quem a lê são ferramentas externas. Elas existem, são a base de tudo do módulo 06 em diante, e são o assunto do [04.14](14-type-hints.md).
+⚠️ **Caixa-preta 1:** o que é `nome: str`, exatamente? É uma **anotação de tipo**. O Python a guarda em `Produto.__annotations__` e não a usa para nada; quem a lê são ferramentas externas. Elas existem, são a base de tudo do módulo 06 em diante, e são o assunto do [04.14](14-type-hints.md).
 
 **E agora o erro que custa caro.** Esqueça a anotação:
 
@@ -308,7 +308,7 @@ Os campos da mãe vêm primeiro na assinatura gerada. Se a mãe tem um campo com
 - **Você quer validação de verdade.** O `__post_init__` resolve casos simples; um `if` por campo em quinze campos é um formulário escrito à mão.
 - **Os dados vêm de fora** — JSON de uma API, corpo de requisição, CSV. A anotação não verifica nada (§6.2), e é justamente em dado externo que o tipo errado chega.
 
-> **Caixa-preta 2 — quem valida, então?** Existe uma biblioteca que usa a **mesma sintaxe de anotação** e a transforma em validação real: um `preco: int` que recebe `"abc"` levanta erro na criação, com mensagem apontando o campo. É o Pydantic, do [04.15](15-pydantic.md), e é a base do FastAPI no módulo 06.
+⚠️ **Caixa-preta 2:** quem valida, então? Existe uma biblioteca que usa a **mesma sintaxe de anotação** e a transforma em validação real: um `preco: int` que recebe `"abc"` levanta erro na criação, com mensagem apontando o campo. É o Pydantic, do [04.15](15-pydantic.md), e é a base do FastAPI no módulo 06.
 
 ---
 

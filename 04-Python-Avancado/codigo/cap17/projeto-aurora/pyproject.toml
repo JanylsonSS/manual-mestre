@@ -1,0 +1,39 @@
+# Um arquivo no lugar de dois requirements.txt — e ele descreve o
+# projeto, não só as dependências (04.17 §6.5).
+
+[project]
+name = "aurora"
+version = "0.1.0"
+description = "Catálogo da Aurora Comércio"
+readme = "LEIAME.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic==2.13.4",
+]
+
+# Grupos opcionais: `pip install -e ".[dev]"` traz também estes.
+[project.optional-dependencies]
+dev = [
+    "mypy==2.3.0",
+    "pytest==8.3.4",
+]
+
+# Um comando de terminal chamado `aurora`, que chama a função `main`
+# do módulo `aurora.cli`. Aparece no PATH do ambiente após a instalação.
+[project.scripts]
+aurora = "aurora.cli:main"
+
+# Como construir o pacote. Sem esta seção, o pip usa um padrão antigo.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+# Onde procurar os pacotes: em src/, e não na raiz.
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -183,7 +183,7 @@ O Python tenta `int.__mul__(3, dinheiro)`, que não sabe lidar com o tipo, e dep
 - **`dinheiro / dinheiro`** deveria devolver um **número puro** (uma razão). R$ 100 ÷ R$ 50 = 2 — duas vezes, não "R$ 2". É `__truediv__` devolvendo `float`.
 - **`dinheiro / 2`** deveria devolver **`Dinheiro`**. Metade de R$ 100 são R$ 50.
 
-**O mesmo operador com dois tipos de retorno**, decidido pelo tipo do operando direito. É legítimo, e precisa ser documentado — porque o leitor não adivinha.
+**O mesmo operador com dois tipos de retorno**, decidido pelo tipo do operando direito. É legítimo, e precisa ser documentado — porque quem lê não adivinha.
 
 E há a decisão de arredondamento: R$ 0,05 dividido por 3 não tem representação exata em centavos. **Dinheiro dividido precisa de uma política de arredondamento explícita**, e ignorá-la é como o `CAST` sem `ROUND` do 03.12.
 
