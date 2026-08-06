@@ -762,3 +762,107 @@ with contextlib.ExitStack() as pilha:
 Todos são fechados na ordem inversa, e uma falha em qualquer um não impede o fechamento dos demais. `with a, b, c` resolve o caso de quantidade fixa; um `try/finally` com lista resolve e custa oito linhas onde cabem três.
 
 **O caso relacionado que vale citar:** se o `__enter__` de um gerenciador adquire dois recursos e o segundo falha, **o `__exit__` não roda** — o `with` nem chegou a começar. Limpar o primeiro é responsabilidade do próprio `__enter__`, e `ExitStack` é a ferramenta usada também aí, dentro dele.
+
+### P81 — "O que é o GIL?" `[conceitual — quase certa em vaga sênior]`
+
+Uma trava global que permite a **uma** thread por vez executar bytecode Python. Ela impede **paralelismo de CPU** dentro de um processo; **não** impede concorrência.
+
+**A resposta que separa não é a definição — é dizer quando ele importa.** Quem **espera** solta o GIL: `sleep`, rede, disco e banco o liberam antes de bloquear. Medido: quatro threads em quatro esperas de meio segundo deram **3,99×**; as mesmas quatro threads em cálculo puro deram **0,94×** — mais lento que sequencial, pelo custo de trocar sem ter o que ganhar.
+
+**E o complemento que fecha:** ele é uma decisão do **CPython**, não da linguagem, e está saindo — o 3.13 trouxe a versão sem GIL como opção experimental.
+
+### P82 — "Então threads são inúteis em Python?" `[a pergunta de acompanhamento]`
+
+Não. São a ferramenta certa para **espera**, que é o que a maioria dos sistemas em Python faz o tempo todo: aplicação web esperando banco, pipeline esperando disco e rede, automação esperando API.
+
+São inúteis para **cálculo puro** em Python — aí a resposta é `ProcessPoolExecutor`, com dois cuidados medidos: o ganho é limitado pelo **número de núcleos** (1,53× em dois), e o custo de enviar dados pode superar o ganho. Num teste, somar uma lista de 1 milhão quatro vezes levou **33,6 ms sequencial e 304,8 ms em processos**, porque cada chamada copiou 4,6 MB.
+
+**E há a exceção que vale citar:** cálculo feito em C — NumPy, `gzip`, Pillow — **libera o GIL**, e aí threads dão paralelismo real.
+
+### P83 — "O GIL me protege de condição de corrida?" `[conceitual — o mal-entendido mais caro]`
+
+**Não.** Ele torna atômica cada **instrução do interpretador**; `saldo = saldo + 1` são quatro delas, e a troca pode acontecer no meio.
+
+**O que torna a pergunta boa é a demonstração.** Quatro threads incrementando mil vezes cada, três execuções: **4000 de 4000, sem perder nada**. O mesmo código com a troca forçada entre a leitura e a escrita: **75% dos incrementos somem**.
+
+A conclusão prática é de método, não de sintaxe: **para essa classe de defeito, teste não é evidência.** A confiança vem da construção — trava dentro de um `with`, ou um desenho com `queue.Queue` em que não existe estado compartilhado para proteger.
+
+### P84 — "Como você escolheria `max_workers`?" `[julgamento — a pergunta prática]`
+
+**Não pelo número de núcleos** — esse é o critério para processos, não para threads em espera.
+
+Para espera, o teto teórico é o número de **tarefas simultâneas**. Medido com 200 tarefas de `sleep(0.1)`: 20 080 ms com 1 worker, 1 016 ms com 20, 165 ms com 200, e **400 não melhora nada**.
+
+**Mas o teto que decide na prática é o do outro lado**: a API tem limite de requisições, o banco tem limite de conexões, o disco tem fila. Duzentas threads contra um serviço que aceita cinco por segundo produzem erros `429` e bloqueio de IP, não velocidade.
+
+**A resposta madura:** comece baixo, meça, suba até o ganho parar — e respeite o limite documentado do serviço antes do seu próprio.
+
+### P85 — "O que `async def` devolve?" `[conceitual — aquecimento de asyncio]`
+
+Uma **corrotina** — um objeto, não um resultado. Chamar a função **não executa uma linha** do corpo, do mesmo jeito que chamar uma função geradora devolve um gerador sem rodar nada.
+
+Quem executa é o **laço de eventos**: `asyncio.run` na raiz do programa, ou `await` dentro de outra corrotina.
+
+**O detalhe prático que vale citar:** descartar uma corrotina sem aguardá-la produz `RuntimeWarning: coroutine was never awaited`. É o sintoma de um `await` esquecido — que, sem esse aviso, apareceria como um programa que não faz o trabalho e não reclama de nada.
+
+### P86 — "Qual a diferença entre `await` em sequência e `gather`?" `[prático — com número]`
+
+`await` significa **"espere aqui"**: ele devolve o controle ao laço, e a linha seguinte só roda quando *aquela* espera acabar. `gather` dispara todas e espera o conjunto.
+
+Medido com três esperas de 0,3 s: **902 ms contra 301 ms**, resultados idênticos e nenhum aviso. É o defeito de desempenho mais comum em código asyncio, e ele não quebra nada — só desacelera.
+
+**A precisão que separa uma boa resposta:** o problema não é o `await` em sequência, é **criar** a corrotina no momento de aguardá-la. Agendando com `create_task` antes e depois aguardando uma a uma, o tempo volta a 201 ms — porque as três já estavam correndo.
+
+### P87 — "O que acontece com um `time.sleep` dentro de uma corrotina?" `[conceitual — o erro que não quebra]`
+
+Ele **bloqueia a thread**, e o laço inteiro para. As outras corrotinas ficam paradas mesmo estando prontas — três `time.sleep(0.3)` num `gather` levam **902 ms** em vez de 301.
+
+Vale para **toda biblioteca síncrona**: `requests.get`, leitura de arquivo, driver de banco comum, cálculo pesado. A regra de bolso é que, se você chamou uma biblioteca sem `await`, ela provavelmente bloqueia.
+
+**Duas saídas:** a versão assíncrona da biblioteca (`httpx` no lugar de `requests`), ou `asyncio.to_thread`. E há um teto no segundo que vale conhecer: `to_thread` usa o executor padrão, de `min(32, núcleos + 4)` threads — numa máquina de dois núcleos são **seis**, e a décima chamada espera a segunda rodada.
+
+### P88 — "Asyncio ou threads?" `[julgamento — a pergunta de arquitetura]`
+
+**Custo por espera.** Medido com 10 mil esperas de meio segundo: **747 ms e +16,9 MB** em corrotinas, contra **3410 ms e +43,2 MB** em threads.
+
+**E a parte honesta da resposta é que as 10 mil threads funcionaram.** Asyncio não é a diferença entre possível e impossível; é entre caro e barato. Para dezenas ou centenas de esperas, com bibliotecas que o projeto já usa, **threads são a escolha pragmática** — trocar `requests` por `httpx` e marcar a árvore inteira com `async` custa mais do que rende.
+
+**O custo de adoção é o argumento que fecha:** asyncio **contamina a árvore de chamadas**. Uma função `async` só pode ser aguardada por outra `async`, a raiz precisa ser `asyncio.run`, e cada biblioteca precisa de versão assíncrona. É decisão de arquitetura, não otimização local.
+
+**E asyncio não ajuda em cálculo** — é uma thread só. Para conta, processos.
+
+### P89 — "Como você coletaria dados de mil endpoints?" `[sistema — a pergunta de projeto]`
+
+Quatro peças, e cada uma responde a uma pergunta diferente: **`Semaphore`** (quantas ao mesmo tempo), **`wait_for`** (até quando esperar), **nova tentativa com espera crescente** (o que fazer quando falha) e **`gather`** (como juntar sem perder os bons).
+
+**O que separa a resposta é dizer de onde vem o número do limite.** Ele não é o número de núcleos nem o tamanho do lote: é o que o **outro lado** aguenta — a documentação da API, o pool de conexões do banco. Quem responde "cem, porque tenho oito núcleos" errou a pergunta; isto é espera, não conta.
+
+**E o detalhe de projeto que impressiona:** faça cada tarefa devolver `Resultado | Falha` em vez de levantar. O `gather` fica sem `return_exceptions`, o tratamento de erro acontece onde há contexto (o identificador, o número de tentativas), e o tipo de retorno é simples o bastante para o verificador cobrar tratamento — é o mesmo raciocínio do `X | None`.
+
+### P90 — "Quais erros merecem nova tentativa?" `[julgamento]`
+
+Os do **canal**: conexão recusada, prazo estourado, HTTP 500. Eles são temporários por natureza, e a próxima tentativa pode funcionar.
+
+Os do **conteúdo**, não: um `ValidationError` significa que o dado veio errado e virá errado de novo — repetir custa três vezes o tempo para chegar ao mesmo lugar. HTTP 404 é igual: o recurso não existe.
+
+**O caso que vale citar porque o custo de errar é assimétrico é o HTTP 401.** Repetir não autentica por insistência, e muitos serviços bloqueiam a conta após N tentativas falhas — a repetição transforma um erro de configuração num incidente.
+
+**E o refinamento de quem já operou isso:** a espera deve **dobrar** a cada tentativa, por um motivo social — repetir imediatamente contra um serviço sobrecarregado piora a sobrecarga. Em produção, acrescente um desvio aleatório (para mil clientes não voltarem no mesmo instante), um teto, e respeite o cabeçalho `Retry-After` quando ele existir.
+
+### P91 — "Por que `CancelledError` não herda de `Exception`?" `[conceitual — detalhe que mostra profundidade]`
+
+Para que um `except Exception` comum **não a capture**. O `try/except` que você escreveu para tratar erros de rede não deve impedir que a sua tarefa seja cancelada — e o `finally` continua rodando, garantindo a limpeza.
+
+**O corolário é o que importa na prática:** quem captura `CancelledError` — para registrar, para limpar — precisa **relançar**. Sem o `raise`, a tarefa devolve um valor normal: quem chamou `cancel()` acha que cancelou, a tarefa acha que terminou bem, e num `wait_for` isso significa que **o prazo deixa de valer**.
+
+É a mesma classe de erro do `__exit__` devolvendo `True` (04.20): três linhas bem-intencionadas que desligam uma garantia, sem produzir erro nenhum.
+
+### P92 — "Como você testaria código concorrente?" `[julgamento — fecha o módulo]`
+
+Com testes de **correção** e pelo menos um de **desempenho**, e o segundo é o que costuma faltar.
+
+Os de correção verificam o que se espera: uma falha não derruba as outras, o prazo vira falha registrada, o dado é normalizado na borda, o resultado é imutável.
+
+**O de desempenho é o que pega a classe de defeito específica da concorrência.** Num coletor assíncrono, `assert versao_concorrente.ms < versao_serial.ms / 3` falha no instante em que alguém introduz uma chamada bloqueante — e **nenhum teste de correção pega isso**, porque os resultados continuam certos. O programa fica lento, e só.
+
+**E há um limite honesto a declarar:** condições de corrida entre threads **não** se testam. Um contador sem trava pode passar em cinco execuções e falhar em produção; a confiança vem da construção — trava dentro de um `with`, ou um desenho sem estado compartilhado —, não da verificação.

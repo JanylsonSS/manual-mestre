@@ -1,0 +1,27 @@
+[project]
+name = "aurora-coletor"
+version = "1.0.0"
+description = "Coletor concorrente da Aurora — projeto integrador do módulo 04"
+requires-python = ">=3.10"
+dependencies = ["pydantic==2.13.4"]
+
+[project.optional-dependencies]
+dev = ["mypy==2.3.0", "pytest==8.3.4", "pytest-asyncio==0.24.0"]
+
+[project.scripts]
+aurora-coletar = "aurora_coletor.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
