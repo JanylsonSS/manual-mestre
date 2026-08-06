@@ -82,3 +82,67 @@ O motivo é estrutural: `execute` paga análise de comando e ida-e-volta **por l
 **A ressalva que separa quem já fez:** `COPY` é tudo-ou-nada, não aceita `ON CONFLICT` e não diz qual linha falhou. Por isso a arquitetura usual é carregar numa **tabela de escala** com `COPY` e depois fazer `INSERT ... SELECT ... ON CONFLICT DO UPDATE` a partir dela.
 
 **E o custo escondido é o `commit`, não o `INSERT`.** Comitar linha a linha força um `fsync` por linha, e o laço sai de segundos para minutos.
+
+### P9 — "O que é a engine do SQLAlchemy, e onde você a cria?" `[prático — triagem de ORM]`
+
+Uma **fábrica de conexões com um pool dentro**, criada **uma vez por aplicação**. Ela não conecta ao nascer: uma URL apontando para um host inexistente é aceita em **0,36 ms**, e o erro só aparece no primeiro `connect()`.
+
+**O erro que a pergunta procura** é `create_engine` dentro da função que atende a requisição. Ele funciona em desenvolvimento, passa nos testes, e em produção cria um pool novo por requisição — anulando exatamente o mecanismo que existe para economizar.
+
+**E o número que sustenta a resposta:** 30 ciclos custaram 3,70 ms cada abrindo de verdade e 0,81 ms com pool. O resto — 0,24 ms na mesma conexão sem soltar — mostra que o pool resolve dois terços do problema, e o que sobra é o `ROLLBACK` de devolução.
+
+### P10 — "Como você dimensiona um pool?" `[arquitetura — separa quem operou]`
+
+**Pelo que o banco aguenta, não pelo número de usuários.** Cada conexão é um processo no PostgreSQL, e o padrão é 100.
+
+A conta é `(pool_size + max_overflow) × instâncias × processos`, mais reserva para migrações, administração e monitoramento. Com quatro instâncias de oito processos, sobram **duas** conexões por processo — o que costuma não fechar, e reconhecer isso é parte da resposta.
+
+**As três saídas reais** são reduzir o pool, aumentar `max_connections`, ou pôr um PgBouncer na frente. A terceira é a usada em produção.
+
+**E os dois erros têm sintomas opostos:** para mais, o banco cai com `too many clients` — inclusive as conexões de administração, o que impede diagnosticar. Para menos, o banco fica ocioso e a aplicação em fila, e o painel sugere que o banco está lento quando ele está parado.
+
+### P11 — "O que a sessão do SQLAlchemy faz?" `[conceitual — obrigatória em vaga com ORM]`
+
+Três coisas: **mapa de identidade** (um objeto por chave primária, e `get()` duas vezes emite um `SELECT` só), **rastro de mudanças** (cada atributo guarda o valor anterior) e **unidade de trabalho** (no `commit`, ela calcula a diferença e emite o SQL mínimo).
+
+É por isso que `produto.preco_centavos = 9990` grava sem ninguém escrever `UPDATE`.
+
+**O detalhe que mostra profundidade** é o `commit` **vencer** todos os objetos: o próximo acesso a um atributo dispara um `SELECT` de recarga, um por objeto. Num laço sobre cem objetos são cem consultas invisíveis, e `expire_on_commit=False` é a troca — dados de um instante atrás em vez de cem idas ao banco.
+
+**E o padrão não é do SQLAlchemy:** *unit of work* está catalogado desde 2002 e aparece igual no Hibernate, no Entity Framework e no Doctrine.
+
+### P12 — "Por que dá DetachedInstanceError?" `[prático — a explicação repetida por aí está errada]`
+
+**Não é por fechar a sessão.** Um objeto cuja sessão foi fechada **sem** `commit` continua respondendo normalmente — medido.
+
+A causa é a combinação de duas coisas: o `commit` **venceu** o objeto, e a sessão fechou depois. O acesso ao atributo tenta recarregar, e não há mais quem faça. O erro não é sobre o objeto estar solto: é sobre ele estar **vazio e sem quem o preencha**.
+
+**As três correções, e a escolha entre elas é de projeto:** `expire_on_commit=False`; converter para dataclass ou modelo Pydantic **dentro** da sessão; ou manter a sessão aberta enquanto os objetos forem usados. A segunda é a que estabelece uma fronteira, e é a recomendada.
+
+### P13 — "O que é o problema N+1, e como você o encontra?" `[obrigatória em vaga de backend]`
+
+Uma consulta para trazer N objetos e mais uma por objeto para trazer o relacionamento. Medido com 300 pedidos: **301 consultas e 660 ms**, contra **1 consulta e 33,8 ms** com `joinedload` — vinte vezes.
+
+**O que torna a pergunta boa é a segunda metade.** Encontra-se **contando consultas**, com um `event.listen` no `before_cursor_execute` ou uma ferramenta de observação — nunca lendo o laço, porque o laço está correto: ele lê `pedido.itens`, que é o uso normal do ORM.
+
+**E a contagem é um invariante**, o que o tempo não é: 301 são 301 em qualquer máquina. Por isso ela serve para um teste automatizado que impede a regressão, e o tempo não serve.
+
+**O detalhe que impressiona:** a gravidade depende da **cardinalidade** do que se repete. Ler `item.produto` para 500 itens custou **12** consultas, e não 500, porque o catálogo tem doze produtos e o mapa de identidade os reaproveita. O mesmo código com um catálogo grande seria devastador.
+
+### P14 — "`joinedload` ou `selectinload`?" `[prático — nível pleno]`
+
+`joinedload` para **muitos-para-um** (`item.produto`, `pedido.cliente`), onde o `JOIN` acrescenta colunas. `selectinload` para **coleções**, onde o `JOIN` multiplicaria linhas: um pedido com 50 itens traria as colunas do pedido 50 vezes pela rede.
+
+**Duas armadilhas que a resposta completa menciona.** `joinedload` de coleção exige `.unique()` no SQLAlchemy 2.0 — antes a deduplicação era silenciosa e fazia `len()` mentir. E dois `joinedload` de coleção **irmãos** na mesma consulta produzem produto cartesiano; encadeados (pedido → itens → produto), não.
+
+**E a ressalva honesta:** medido aqui, `selectinload` ficou **mais lento** que `joinedload` (60,1 contra 33,8 ms), com 300 pais e 5 filhos cada. Com coleções maiores a conta inverte. Resolver o N+1 rende 20×; escolher a estratégia perfeita rende menos de 2×.
+
+### P15 — "Quando você não usaria o ORM?" `[arquitetura — a pergunta que separa opinião de medição]`
+
+**Quando carrega para ler e não para modificar.** Medido: 5000 linhas custam **60,0 ms** como objetos e **8,2 ms** como tuplas — 7,3×. A diferença é construir objetos, instrumentar atributos e registrar no mapa de identidade.
+
+**Isso não é desperdício** — é o preço do `pedido.itens`, do `UPDATE` automático e das cascatas. Para cinquenta linhas que vão ser alteradas, ele custa microssegundos e economiza um dia de código.
+
+**O critério cabe num verbo:** carregou para **modificar**, ORM; carregou para **ler**, considere o Core.
+
+**E antes de escolher entre os dois, há uma pergunta melhor:** preciso carregar? Somar 300 pedidos já otimizados levou 31,1 ms; a mesma soma no banco levou **5,5 ms** com uma consulta. A otimização que mais rende é não trazer os dados.

@@ -37,11 +37,11 @@ Módulo 03 completo (o SQL deste módulo é o mesmo, num servidor) e módulo 04 
 | 05.02 | [`psql` e ferramentas gráficas](02-psql-e-ferramentas-graficas.md) | **Executar** administração básica no terminal e no DBeaver | N1 |
 | 05.03 | [Tipos avançados do Postgres](03-tipos-avancados.md) | **Aplicar** `JSONB`, arrays, `UUID` e tipos de data/hora | N2 |
 | 05.04 | [Python + Postgres com psycopg](04-psycopg.md) | **Implementar** consultas parametrizadas e **explicar** SQL injection | N2 |
-| 05.05 | SQLAlchemy: visão geral e Core | **Explicar** engine, conexão e transação | N2 |
-| 05.06 | ORM: modelos declarativos | **Mapear** classes para tabelas com `Mapped`/`mapped_column` | N2 |
-| 05.07 | ORM: sessões e ciclo de vida | **Prever** unit of work, `flush` e `commit` | N2 |
-| 05.08 | ORM: relacionamentos | **Implementar** 1-N e N-N com `relationship` | N2 |
-| 05.09 | ORM: consultas e carregamento | **Depurar** o N+1 e **escolher** lazy vs. eager | N3 |
+| 05.05 | [SQLAlchemy: visão geral e Core](05-sqlalchemy-core.md) | **Explicar** engine, conexão e transação | N2 |
+| 05.06 | [ORM: modelos declarativos](06-orm-modelos.md) | **Mapear** classes para tabelas com `Mapped`/`mapped_column` | N2 |
+| 05.07 | [ORM: sessões e ciclo de vida](07-orm-sessoes.md) | **Prever** unit of work, `flush` e `commit` | N2 |
+| 05.08 | [ORM: relacionamentos](08-orm-relacionamentos.md) | **Implementar** 1-N e N-N com `relationship` | N2 |
+| 05.09 | [ORM: consultas e carregamento](09-orm-consultas.md) | **Depurar** o N+1 e **escolher** lazy vs. eager | N3 |
 | 05.10 | Alembic | **Aplicar** migrações versionadas | N2 |
 | 05.11 | Performance: `EXPLAIN` e índices | **Analisar** planos e **medir** índices reais | N3 |
 | 05.12 | MongoDB: o modelo de documentos | **Justificar** quando NoSQL faz sentido | N1 |

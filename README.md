@@ -47,7 +47,7 @@ O fluxo de versionamento e sincronização entre máquinas está em [`CONTRIBUIN
 | 02 — Git e Linux | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 12 / 12 |
 | 03 — SQL | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista) | 16 / 16 |
 | 04 — Python Avançado | **Completo** (capítulos, exercícios, revisão, simulados A/B, cheatsheet, desafios de entrevista, projeto integrador) | 23 / 23 |
-| 05 — PostgreSQL e MongoDB | Em geração (bloco "O servidor" completo) | 4 / 14 |
+| 05 — PostgreSQL e MongoDB | Em geração (blocos "O servidor" e "O ORM" completos) | 9 / 14 |
 | 06–13 | Não iniciados | 0 |
 
 *Última atualização: 2026-08-06 · Gerado sob spec 3.0.0*
