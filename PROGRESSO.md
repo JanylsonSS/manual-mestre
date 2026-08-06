@@ -27,4 +27,4 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 | 03/08/26 | CP1 00.02 | OK | | 03/08/26 |
 | 04/08/26 | CP1 00.03 | OK | | 04/08/26 |
 | 05/08/26 | CP1 00.04 e 00.05 | OK | | 05/08/26 |
-| 05/08/26 | CP2 00-Introdução | | | |
+| 05/08/26 | CP2 00-Introdução | OK | | 06/08/26|

@@ -8,19 +8,19 @@
 
 **Q1.** A ordem dos módulos da trilha é inegociável porque:
 a) Foi a ordem em que a spec foi escrita
-b) É uma ordenação do grafo de dependências: cada conceito chega antes de ser necessário
+`b) É uma ordenação do grafo de dependências: cada conceito chega antes de ser necessário`
 c) Os módulos ficam progressivamente mais curtos
 d) O mercado exige certificação sequencial
 
 **Q2.** Um capítulo precisa usar `if __name__ == "__main__":` antes do capítulo que o explica. O padrão correto do manual é:
 a) Usar sem comentário — o leitor pesquisa por fora
 b) Proibir o uso até o capítulo próprio
-c) Um callout 📦 Caixa-preta com instrução de uso e a promessa do capítulo que abre (máx. 2 por capítulo)
+`c) Um callout 📦 Caixa-preta com instrução de uso e a promessa do capítulo que abre (máx. 2 por capítulo)`
 d) Uma nota de rodapé com link externo
 
 **Q3.** Seu sábado rendeu e você quer "adiantar" as revisões D+7 da semana que vem. O sistema diz:
 a) Ótimo — quanto antes, melhor
-b) Não: revisar antes da hora desperdiça o efeito do espaçamento; sem esforço de recuperação não há consolidação
+`b) Não: revisar antes da hora desperdiça o efeito do espaçamento; sem esforço de recuperação não há consolidação`
 c) Vale, desde que em voz alta
 d) Só se a fila estiver acima de 15 itens
 
@@ -28,52 +28,55 @@ d) Só se a fila estiver acima de 15 itens
 a) DevOps constrói; backend expõe
 b) Backend faz os dois
 c) Engenharia de dados constrói; backend expõe
-d) Engenharia de dados faz os dois
+~d) Engenharia de dados faz os dois~
 
 **Q5.** O que faz a busca do terminal parar num Python 3.9 quando há um 3.12 instalado?
 a) O 3.9 é marcado como padrão do sistema
-b) A busca no PATH retorna o primeiro executável encontrado na ordem das pastas
+`b) A busca no PATH retorna o primeiro executável encontrado na ordem das pastas`
 c) Versões menores têm prioridade
 d) O 3.12 exige ativação manual
 
 **Q6.** O critério de aprovação do CP2 é:
 a) Sensação de domínio + checklist do último capítulo
-b) ≥ 8/10 nas objetivas e prático ≥ 3 na rubrica
+`b) ≥ 8/10 nas objetivas e prático ≥ 3 na rubrica`
 c) ≥ 70% no simulado acumulativo da fase
 d) Todas as revisões D+7 do módulo em dia
 
 **Q7.** "5/5 nos flashcards em 3 minutos, sem esforço nenhum" é descrito pelo manual como sinal de:
 a) Domínio consolidado — avançar
-b) Revisão de reconhecimento: o verso à vista transformou recuperação em releitura
+`b) Revisão de reconhecimento: o verso à vista transformou recuperação em releitura`
 c) Cards mal escritos
 d) Ritmo ideal de D+1
 
 **Q8.** A pasta `codigo/capNN/` de cada módulo existe para:
 a) Backup dos capítulos
-b) Que o aluno execute os arquivos reais de lá, em vez de copiar código do texto
+`b) Que o aluno execute os arquivos reais de lá, em vez de copiar código do texto`
 c) Guardar os gabaritos
 d) Uso exclusivo de quem gera capítulos
 
 **Q9.** Qual sequência de entregas do Atlas respeita o roteiro?
 a) API v1 → schema SQL → scripts CLI
-b) Scripts CLI → schema SQL → API v1 → docker compose
+`b) Scripts CLI → schema SQL → API v1 → docker compose`
 c) Docker compose → scripts CLI → API v1
 d) Schema SQL → suíte de testes → scripts CLI
 
 **Q10.** Antecipar Docker no Atlas durante o módulo 03 viola qual regra do fio condutor?
 a) A regra do README honesto
 b) A regra de que refatorações exigem commits explicativos
-c) A regra de que o Atlas nunca exige (nem recebe) conteúdo ainda não ensinado
+`c) A regra de que o Atlas nunca exige (nem recebe) conteúdo ainda não ensinado`
 d) Nenhuma — o Atlas é laboratório livre
 
 ## Discursivas
 
 **D1.** Um amigo vai começar a trilha e pergunta: "posso pular o módulo 00 e ir direto para Python?". Responda em ~10 linhas: o que ele perderia, concretamente, em cada uma das 4 frentes do módulo (método, mapa, oficina, projeto).
-
+`Primeiro ele perderia o metodo correto de estudar cada modulo oq poderia deificultar o aprendizado`
+`Segundo ele n endenderia os papeis principais que esse manual visa preparar`
+`Terceiro n saberia preparar o ambiente para o manual e se tiver problema n teria como resolver`
+`E por ultimo n saberia do que se trata o Atlas`
 **D2.** Explique a frase "avanço é critério, não sensação" descrevendo os três checkpoints (instrumento + critério de cada um) e o que acontece na reprovação de um CP2.
-
+`É preciso estar alinhado com o que o manual propõen, por isso precisa que seguir os checkpoins para medir o avnaço da maneira correta pelo checklist do CP1, o simulado do CP2 e o projeto do CP3, se acontecer uma reprovação no CP2 precisa revisar novamente o conteudo e entao tentar a versão dois do simulado`
 **D3.** Descreva o protocolo completo para voltar de um hiato de 2 semanas: triagem, ordem de ataque, o que acontece com itens muito vencidos, e os dois comportamentos proibidos.
-
+`Primeio se deve mapear e preparar como sera feito os blocos de seção de estudo, se tiver muitos itens vencidos o ritimo de estudo novo deve ser reduzidos, e é proibido fazer mais que dois capitulos por dia e começar capitulo novo se tiver revião vencida`
 ## Prático (~45 min, consulta livre)
 
 **Auditoria de calibração.** Prove que seu sistema está operacional entregando (em um arquivo `auditoria-modulo-00.md` na raiz):
