@@ -23,9 +23,15 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import tempfile
 from pathlib import Path
 
-PASTA_DADOS = Path(__file__).resolve().parent.parent / "dados" / "pgdata"
+# A pasta de dados fica FORA do repositório, por dois motivos: ela é dado
+# gerado (como o `aurora.db` do módulo 03), e o servidor precisa criar um
+# soquete Unix ali — o que pastas sincronizadas e alguns sistemas de
+# arquivos de rede não permitem.
+PASTA_DADOS = Path(os.environ.get(
+    "AURORA_PGDATA", Path(tempfile.gettempdir()) / "aurora-pgdata"))
 
 ESQUEMA = """
 DROP TABLE IF EXISTS itens_pedido, pedidos, produtos, clientes CASCADE;
@@ -124,7 +130,36 @@ def uri() -> str:
     import pgserver                                   # só quando necessário
 
     PASTA_DADOS.mkdir(parents=True, exist_ok=True)
-    return pgserver.get_server(str(PASTA_DADOS)).get_uri()
+    # `cleanup_mode=None` é o detalhe que faz o laboratório servir para o
+    # 05.02. O padrão do pgserver é 'stop': o servidor cai quando o último
+    # processo que o abriu termina — ou seja, quando este script sai. Aí o
+    # `psql` do outro terminal encontra o soquete apagado:
+    #     psql: error: connection to server on socket ".s.PGSQL.5432"
+    #     failed: No such file or directory
+    # Com None, o servidor continua de pé. Para derrubá-lo: --parar.
+    return pgserver.get_server(str(PASTA_DADOS), cleanup_mode=None).get_uri()
+
+
+def caminho_do_psql() -> str:
+    """A pasta `bin` do PostgreSQL que veio dentro do pacote pgserver."""
+    import pgserver
+
+    return str(Path(pgserver.__file__).parent / "pginstall" / "bin")
+
+
+def parar() -> int:
+    """Derruba o servidor do laboratório, preservando os dados."""
+    import pgserver
+
+    servidor = pgserver.get_server(str(PASTA_DADOS), cleanup_mode=None)
+    pid = servidor.get_pid()
+    if pid is None:
+        print("O servidor já estava parado.")
+        return 0
+    pgserver.pg_ctl(["-D", str(PASTA_DADOS), "-m", "fast", "stop"])
+    print("Servidor parado (pid %d). Os dados continuam em %s"
+          % (pid, PASTA_DADOS))
+    return 0
 
 
 def criar_e_popular(endereco: str) -> dict[str, int]:
@@ -161,7 +196,17 @@ def main() -> int:
     analisador = argparse.ArgumentParser(description="Laboratório do módulo 05")
     analisador.add_argument("--uri", action="store_true",
                             help="imprime a URI e sai")
+    analisador.add_argument("--bin", action="store_true",
+                            help="imprime a pasta com psql, pg_dump e afins")
+    analisador.add_argument("--parar", action="store_true",
+                            help="derruba o servidor, preservando os dados")
     opcoes = analisador.parse_args()
+
+    if opcoes.parar:
+        return parar()
+    if opcoes.bin:
+        print(caminho_do_psql())
+        return 0
 
     endereco = uri()
     if opcoes.uri:
@@ -176,6 +221,11 @@ def main() -> int:
     print()
     print("Para usar em outro terminal:")
     print('  export AURORA_URI="%s"' % endereco)
+    print('  export PATH="%s:$PATH"      # psql, pg_dump, pg_restore'
+          % caminho_do_psql())
+    print()
+    print("O servidor continua de pé depois deste script.")
+    print("  python codigo/laboratorio.py --parar   # para derrubá-lo")
     return 0
 
 
