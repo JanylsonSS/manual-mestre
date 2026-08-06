@@ -301,19 +301,19 @@ Requisitos numerados:
 
 Perguntas de domínio — teste do sim:
 
-- [ ] Sei explicar *a diferença entre recuperação e releitura, e por que só a primeira consolida*?
-- [ ] Sei executar *o gesto exato de cada momento do ciclo (D+1/D+7/D+30/D+90)*?
-- [ ] Sei aplicar *o protocolo de falha (quando um item reinicia o ciclo) e o de atraso (fila >15, hiato)*?
-- [ ] Sei executar *o ritual de fim de sessão em menos de 5 minutos*?
-- [ ] Sei responder *à pergunta de entrevista "como você se mantém atualizado?" com sistema, não com boa intenção*?
+- [x] Sei explicar *a diferença entre recuperação e releitura, e por que só a primeira consolida*?
+- [x] Sei executar *o gesto exato de cada momento do ciclo (D+1/D+7/D+30/D+90)*?
+- [x] Sei aplicar *o protocolo de falha (quando um item reinicia o ciclo) e o de atraso (fila >15, hiato)*?
+- [x] Sei executar *o ritual de fim de sessão em menos de 5 minutos*?
+- [x] Sei responder *à pergunta de entrevista "como você se mantém atualizado?" com sistema, não com boa intenção*?
 
 Itens práticos:
 
-- [ ] Executei o D+1 real do 00.01 (em voz alta) e registrei o placar.
-- [ ] Minha `Revisoes/agenda.md` está completa e verdadeira até este capítulo.
+- [x] Executei o D+1 real do 00.01 (em voz alta) e registrei o placar.
+- [x] Minha `Revisoes/agenda.md` está completa e verdadeira até este capítulo.
 - [ ] Criei ≥2 cards pessoais a partir de erros meus.
-- [ ] Escrevi o `meu-protocolo-de-atraso.md` (manual de bolso).
-- [ ] Fechei esta sessão com o ritual completo — inclusive agendando as revisões deste capítulo.
+- [x] Escrevi o `meu-protocolo-de-atraso.md` (manual de bolso).
+- [x] Fechei esta sessão com o ritual completo — inclusive agendando as revisões deste capítulo.
 
 ---
 

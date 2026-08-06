@@ -8,22 +8,26 @@ Regra dos 15 minutos antes da Dica 1. Gabaritos em [`gabaritos/cap04.md`](gabari
 
 **Tarefa.** Associe cada gesto ao momento do ciclo (D+1, D+7, D+30 ou D+90):
 
-1. Reexplicar o modelo mental em voz alta, sem olhar.
-2. Modificar um trecho antigo do Atlas que usa o conceito.
-3. Responder os 5 cards do capítulo cobrindo o verso.
-4. Resolver um exercício que mistura este capítulo com dois outros módulos.
+1. Reexplicar o modelo mental em voz alta, sem olhar. `D+7`
+2. Modificar um trecho antigo do Atlas que usa o conceito.`D+90`
+3. Responder os 5 cards do capítulo cobrindo o verso. `D+1`
+4. Resolver um exercício que mistura este capítulo com dois outros módulos. `D+30`
 
 ### A2 — O que o sistema manda? `[Aquecimento · ~5 min · protocolo de falha]`
 
 **Tarefa.** Para cada resultado, diga a consequência correta:
 
-1. D+1: errou 2 de 5 cards.
-2. D+7: modelo mental truncado e 3 questões erradas.
-3. D+30: resolveu o exercício transversal com dificuldade, mas resolveu.
+1. D+1: errou 2 de 5 cards. `Bom resultado, significa que a mente ta fazendo esforço, anota oq que errou no progresso.md`
+2. D+7: modelo mental truncado e 3 questões erradas. `Reinicia o ciclo a partir do D+1 e o capitulo entra na revisao de sábado` 
+3. D+30: resolveu o exercício transversal com dificuldade, mas resolveu. `Conta como feito e registrar as dificuldades`
 
 ### A3 — O ritual, de memória `[Aquecimento · ~10 min · ritual de fim]`
 
 **Tarefa.** Escreva de memória os 3 passos do ritual de fim de sessão, na ordem. Depois execute-os para a sessão de hoje, de verdade.
+
+1. Registrar no Progresso.md
+2. Agendar a revisão no agenda.md
+3. Marcar como feito as revisões realizadas no dia  
 
 ## Aplicação
 
@@ -46,6 +50,14 @@ Regra dos 15 minutos antes da Dica 1. Gabaritos em [`gabaritos/cap04.md`](gabari
 ```
 
 **Tarefa.** Aplique o protocolo: (a) o que ele pode estudar de novo hoje? (b) em que ordem ataca os itens? (c) o D+1 de 01.07, vencido há 10 dias, ainda vale como D+1 — o que fazer com ele? (d) monte o plano dos próximos 3 dias em blocos de ~30 min.
+
+(a) Ele não pode estudar nada novo, pois tem revisões pendentes
+(b) Do mais antigo para o mais novo
+(c) Executa-se mesmo assim — mas com expectativa ajustada: 11 dias sem reforço, a trilha fechou mais. Se a revisão falhar feio, o item **reinicia o ciclo** (novo D+1 amanhã), e está tudo bem: é o custo honesto do hiato, não um castigo. Repare que há até um D+7 do mesmo 01.07 vencendo dia 13 — na prática, os dois se fundem numa revisão única e o resultado dela decide o reagendamento. 
+(d) Plano de referência (3 dias, ~30–60 min/dia de revisão):
+    - Dia 1 (14/09): 01.07 D+1 + 01.02 D+7 (~30 min) · sem conteúdo novo.
+    - Dia 2 (15/09): 01.08 D+1 + 01.04 D+7 (~30 min) · sem conteúdo novo.
+    - Dia 3 (16/09): 00.02 D+30 + 01.07 D+7 (fundido) + 01.08 D+7 do dia (~60 min) · fila zerada → 1 capítulo novo leve, se sobrar energia.
 
 <details><summary>💡 Dica 1 (conceito)</summary>
 Duas regras decidem quase tudo: vencidos bloqueiam conteúdo novo; hiato longo se paga em blocos, não em maratona.

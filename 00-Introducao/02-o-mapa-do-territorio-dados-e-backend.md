@@ -293,7 +293,7 @@ Perguntas de domínio — teste do sim:
 
 - [x] Sei explicar *o que cada um dos três papéis entrega e onde eles se encontram*?
 - [x] Sei explicar *por que o banco de dados é o centro do território*?
-- [ ] Sei localizar *as tecnologias da trilha no mapa (sem decorar — entendendo o porquê)*?
+- [x] Sei localizar *as tecnologias da trilha no mapa (sem decorar — entendendo o porquê)*?
 - [x] Sei diferenciar *engenharia de dados de ciência de dados em duas frases*?
 - [x] Sei responder *à pegadinha "você é backend ou engenheiro de dados?"*?
 

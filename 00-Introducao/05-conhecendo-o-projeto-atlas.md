@@ -332,18 +332,18 @@ Requisitos numerados:
 
 Perguntas de domínio — teste do sim:
 
-- [ ] Sei explicar *quem é a Aurora, o que é o Atlas e a relação dor → entrega por módulo (o padrão, com 3+ exemplos)*?
-- [ ] Sei explicar *as 4 regras do fio condutor e o que cada uma protege*?
-- [ ] Sei explicar *por que o Atlas nunca recomeça — e o que fazer com a vergonha do código antigo*?
-- [ ] Sei identificar *os 3 erros fatais de relação com o projeto (e qual deles me tentaria mais)*?
-- [ ] Sei responder *ao pitch de 60 segundos e à pegadinha "foi você mesmo que fez?"*?
+- [x] Sei explicar *quem é a Aurora, o que é o Atlas e a relação dor → entrega por módulo (o padrão, com 3+ exemplos)*?
+- [x] Sei explicar *as 4 regras do fio condutor e o que cada uma protege*?
+- [x] Sei explicar *por que o Atlas nunca recomeça — e o que fazer com a vergonha do código antigo*?
+- [x] Sei identificar *os 3 erros fatais de relação com o projeto (e qual deles me tentaria mais)*?
+- [x] Sei responder *ao pitch de 60 segundos e à pegadinha "foi você mesmo que fez?"*?
 
 Itens práticos:
 
-- [ ] Fundei o Atlas: pasta + `git init` + README no padrão.
-- [ ] Fiz os exercícios de Aquecimento e Aplicação (pitch cronometrado incluso).
-- [ ] Completei o mini projeto do módulo (5 requisitos) e me autoavaliei pela rubrica — 1 dia depois.
-- [ ] Registrei tudo no `PROGRESSO.md` e agendei as 4 revisões deste capítulo.
+- [x] Fundei o Atlas: pasta + `git init` + README no padrão.
+- [x] Fiz os exercícios de Aquecimento e Aplicação (pitch cronometrado incluso).
+- [x] Completei o mini projeto do módulo (5 requisitos) e me autoavaliei pela rubrica — 1 dia depois.
+- [x] Registrei tudo no `PROGRESSO.md` e agendei as 4 revisões deste capítulo.
 
 ---
 

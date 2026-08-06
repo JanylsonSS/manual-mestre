@@ -34,6 +34,7 @@ saidas/
 *.log
 *.tmp
 quarentena_*.csv
+13-Projetos/
 
 # --- Sistema operacional ---
 .DS_Store

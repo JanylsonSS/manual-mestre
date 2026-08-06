@@ -12,7 +12,11 @@ Fonte de verdade do que revisar hoje (Â§25). Itens vencidos **bloqueiam** conteÃ
 | 2026-08-10 | D+7 | 00.02 o mapa do territorio dados e backend | |
 | 2026-09-02 | D+30 | 00.02 o mapa do territorio dados e backend | |
 | 2026-10-01 | D+90 | 00.02 o mapa do territorio dados e backend | |
-| 2026-08-05 | D+1 | 00.03 preparando o ambiente | |
-| 2026-08-11 | D+7 | 00.03 preparando o ambiente | |
-| 2026-09-03 | D+30 | 00.03 preparando o ambiente | |
-| 2026-10-02 | D+90 | 00.03 preparando o ambiente | |
+| 2026-08-05 | D+1 | 00.03 preparando o ambiente | 2026-08-05|
+| 2026-08-11 | D+7 | 00.04 + 00.05| |
+| 2026-09-03 | D+30 | 00.04 + 00.05| |
+| 2026-10-02 | D+90 | 00.04 + 00.05| |
+| 2026-08-06 | D+1 | 00.04 + 00.05| |
+| 2026-08-12 | D+7 | 00.04 + 00.05| |
+| 2026-09-04 | D+30 | 00.04 + 00.05| |
+| 2026-10-03 | D+90 | 00.04 + 00.05| |

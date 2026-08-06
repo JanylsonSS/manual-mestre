@@ -319,8 +319,8 @@ Requisitos numerados:
 
 Perguntas de domínio — aplique o teste do sim (conseguiria agora, sem olhar?):
 
-- [ ] Sei explicar *por que a trilha é linear e o que é o grafo de dependências*?
-- [ ] Sei explicar *o papel dos 4 níveis de prática e a regra dos 15 minutos*?
+- [x] Sei explicar *por que a trilha é linear e o que é o grafo de dependências*?
+- [x] Sei explicar *o papel dos 4 níveis de prática e a regra dos 15 minutos*?
 - [x] Sei explicar *o ciclo D+1/D+7/D+30/D+90 e por que revisão vencida bloqueia conteúdo novo*?
 - [x] Sei diferenciar *CP1, CP2 e CP3, com o instrumento e o critério de cada um*?
 - [x] Sei responder *à pergunta de entrevista "como você sabe que aprendeu de verdade?"*?
