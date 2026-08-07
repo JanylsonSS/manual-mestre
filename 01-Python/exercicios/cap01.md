@@ -8,9 +8,20 @@ Regra dos 15 minutos antes da Dica 1. Gabaritos em [`gabaritos/cap01.md`](gabari
 
 **Tarefa.** A partir da raiz do repositório, execute e cole as saídas de:
 
-1. `python 01-Python/codigo/cap01/ola_aurora.py`
+1. `python 01-Python/codigo/cap01/ola_aurora.py` 
+Aurora Comércio — sistema Atlas
+Primeiro dia de trabalho: ambiente ok, linguagem escolhida.
+Próxima missão: descobrir quanto vendemos por cidade.
 2. `python 01-Python/codigo/cap01/leitura_em_voz_alta.py`
+3
 3. `python -m this` (só as 5 primeiras linhas da saída)
+The Zen of Python, by Tim Peters
+
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
 
 ### A2 — Leia antes de rodar `[Aquecimento · ~10 min · leitura de código]`
 
@@ -19,28 +30,33 @@ Regra dos 15 minutos antes da Dica 1. Gabaritos em [`gabaritos/cap01.md`](gabari
 ```python
 frutas = ["uva", "manga", "uva", "kiwi"]
 print(frutas.count("uva"))
+# saida = 2
 ```
 
 ```python
 print("Aurora")
 print("Aurora")
 print("Atlas")
+# Aurora
+# Aurora
+# Atlas
 ```
 
 ```python
 nomes = ["Ana", "Bruno", "Carla"]
 print(nomes.count("Diego"))
+# saida = 0
 ```
 
 ### A3 — Vocabulário do capítulo `[Aquecimento · ~5 min · termos]`
 
 **Tarefa.** Complete cada frase com um destes termos: *interpretador, CPython, biblioteca padrão, PEP, Zen do Python*.
 
-1. O programa instalado na minha máquina que executa arquivos `.py` chama-se ____.
-2. Módulos como `csv` e `json`, que vêm junto com o Python, formam a ____.
-3. A filosofia da linguagem em 19 aforismos é o ____.
-4. Propostas públicas de evolução da linguagem são chamadas de ____.
-5. De forma geral, o programa que lê e executa código de uma linguagem é chamado de ____.
+1. O programa instalado na minha máquina que executa arquivos `.py` chama-se `CPython`.
+2. Módulos como `csv` e `json`, que vêm junto com o Python, formam a `biblioteca padrão`.
+3. A filosofia da linguagem em 19 aforismos é o `Zen do python`.
+4. Propostas públicas de evolução da linguagem são chamadas de `PEP`.
+5. De forma geral, o programa que lê e executa código de uma linguagem é chamado de `Interpretador`.
 
 ### A4 — Endereço do erro `[Aquecimento · ~10 min · traceback]`
 
@@ -52,6 +68,9 @@ print(nomes.count("Diego"))
           ^
 SyntaxError: unterminated string literal (detected at line 7)
 ```
+- Arquivo: relatorio.py
+- Linha: 7
+- Categoria do problema: SyntaxError
 
 ```text
   File "menu.py", line 2
@@ -59,10 +78,16 @@ SyntaxError: unterminated string literal (detected at line 7)
     ^
 IndentationError: unexpected indent
 ```
+- Arquivo: menu.py
+- Linha: 2
+- Categoria do problema: IndentationError
 
 ```text
 'python' não é reconhecido como um comando interno ou externo...
 ```
+- Arquivo:
+- Linha:
+- Categoria do problema: escrita da linguagem no terminal
 
 (Atenção: um dos três não é erro de Python.)
 
@@ -77,6 +102,16 @@ IndentationError: unexpected indent
 ### AP2 — Quebre de propósito `[Aplicação · ~20 min · colecionando erros]`
 
 **Tarefa.** Num arquivo `laboratorio_de_erros.py`, provoque deliberadamente, um de cada vez (comentando o anterior): (1) aspas sem fechar; (2) indentação inesperada; (3) `print` sem parênteses — este você ainda não viu: rode e descubra. Para cada um, cole a mensagem e escreva a "tradução" em 1 linha.
+
+PS D:\Janylson\Documents\DEV\Roadmap\manual-mestre> & C:\Python314\python.exe d:/Janylson/Documents/DEV/Roadmap/manual-mestre/01-Python/codigo/cap01/laboratorio_de_erros.py
+  File "d:\Janylson\Documents\DEV\Roadmap\manual-mestre\01-Python\codigo\cap01\laboratorio_de_erros.py", line 1
+    print("ola mundo)
+          ^
+SyntaxError: unterminated string literal (detected at line 1)
+PS D:\Janylson\Documents\DEV\Roadmap\manual-mestre> & C:\Python314\python.exe d:/Janylson/Documents/DEV/Roadmap/manual-mestre/01-Python/codigo/cap01/laboratorio_de_erros.py
+  File "d:\Janylson\Documents\DEV\Roadmap\manual-mestre\01-Python\codigo\cap01\laboratorio_de_erros.py", line 3
+    print("ola mundo")
+IndentationError: unexpected indent
 
 <details><summary>💡 Dica 1 (conceito)</summary>
 A última linha do traceback é sempre a categoria + descrição; o bloco acima dela é o endereço.

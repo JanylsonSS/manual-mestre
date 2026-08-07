@@ -8,7 +8,7 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 |---|---|
 | Fase | 1 — Fundamentos |
 | Módulo | 01 — Python |
-| Próximo capítulo | 01.00 |
+| Próximo capítulo | 01.02 |
 
 ## Diário
 
@@ -18,6 +18,7 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 | 03/08/26 | 00.02  e 00.01 D+1| novo + revisão| | |
 | 04/08/26 | 00.03 + 00.02 D+1| novo + revisão  | Ambiente Pronto| |
 | 05/08/26 | 00.04 e 00.05, 00.01 a 00.03 D+1| novo + revisão |Initialized empty Git repository in .../13-Projetos/atlas/.git/  |  Errei F4 do  00.01(chekpoint) |
+| 07/08/26 | 01.01 | novo | | |
 
 ## Checkpoints
 
@@ -28,3 +29,4 @@ Atualize ao fim de cada sessão de estudo. Reprovações também são registrada
 | 04/08/26 | CP1 00.03 | OK | | 04/08/26 |
 | 05/08/26 | CP1 00.04 e 00.05 | OK | | 05/08/26 |
 | 05/08/26 | CP2 00-Introdução | OK | | 06/08/26|
+| 07/08/26 | CP1 01.01 | OK | | 07/08/26 |

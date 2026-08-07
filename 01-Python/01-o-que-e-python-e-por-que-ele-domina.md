@@ -388,19 +388,19 @@ Requisitos numerados:
 
 Perguntas de domínio — teste do sim:
 
-- [ ] Sei explicar *a filosofia do Python e citar 2 aforismos do Zen com exemplo prático*?
-- [ ] Sei explicar *a diferença entre linguagem, CPython e biblioteca padrão*?
-- [ ] Sei explicar *por que Python domina dados e backend — e onde ele perde*?
-- [ ] Sei depurar *os 3 erros deste capítulo lendo o traceback de baixo para cima*?
-- [ ] Sei responder *à pegadinha "Python é lento" em três tempos*?
+- [x] Sei explicar *a filosofia do Python e citar 2 aforismos do Zen com exemplo prático*?
+- [x] Sei explicar *a diferença entre linguagem, CPython e biblioteca padrão*?
+- [x] Sei explicar *por que Python domina dados e backend — e onde ele perde*?
+- [x] Sei depurar *os 3 erros deste capítulo lendo o traceback de baixo para cima*?
+- [x] Sei responder *à pegadinha "Python é lento" em três tempos*?
 
 Itens práticos:
 
-- [ ] Rodei os 2 arquivos de `codigo/cap01/` e o `python -m this`.
-- [ ] Acertei (ou entendi por que errei) o exercício de previsão da seção 4.
-- [ ] Fiz Aquecimento e Aplicação; tentei o Desafio 15+ min antes das dicas.
-- [ ] Construí o `cartao_de_visita.py` (4 requisitos).
-- [ ] Registrei a sessão e agendei as 4 revisões deste capítulo.
+- [x] Rodei os 2 arquivos de `codigo/cap01/` e o `python -m this`.
+- [x] Acertei (ou entendi por que errei) o exercício de previsão da seção 4.
+- [x] Fiz Aquecimento e Aplicação; tentei o Desafio 15+ min antes das dicas.
+- [x] Construí o `cartao_de_visita.py` (4 requisitos).
+- [x] Registrei a sessão e agendei as 4 revisões deste capítulo.
 
 ---
 
