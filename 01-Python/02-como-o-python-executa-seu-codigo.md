@@ -369,19 +369,19 @@ Requisitos numerados:
 
 Perguntas de domínio — teste do sim:
 
-- [ ] Sei explicar *o caminho fonte → bytecode → PVM, e o que cada estação rejeita*?
-- [ ] Sei explicar *por que "interpretado ≠ sem compilação" (a pegadinha da seção 15)*?
-- [ ] Sei ler *um traceback de baixo para cima extraindo o quê/onde em segundos*?
-- [ ] Sei prever *o que executa (e o que não) num script com erro de escrita vs. erro de execução*?
-- [ ] Sei explicar *o que é `__pycache__` e o destino dela no versionamento*?
+- [x] Sei explicar *o caminho fonte → bytecode → PVM, e o que cada estação rejeita*?
+- [x] Sei explicar *por que "interpretado ≠ sem compilação" (a pegadinha da seção 15)*?
+- [x] Sei ler *um traceback de baixo para cima extraindo o quê/onde em segundos*?
+- [x] Sei prever *o que executa (e o que não) num script com erro de escrita vs. erro de execução*?
+- [x] Sei explicar *o que é `__pycache__` e o destino dela no versionamento*?
 
 Itens práticos:
 
-- [ ] Fiz os 3 experimentos da seção 9 (incluindo quebrar e consertar `duas_estacoes.py`).
-- [ ] Acertei o exercício de previsão da seção 4 e o checkpoint rápido da seção 9.
-- [ ] Fiz Aquecimento e Aplicação; 10 voltas de ciclo abaixo de 10s.
-- [ ] Construí o `socorro-execucao.md` e ele passou no teste de usabilidade.
-- [ ] Registrei a sessão e agendei as 4 revisões.
+- [x] Fiz os 3 experimentos da seção 9 (incluindo quebrar e consertar `duas_estacoes.py`).
+- [x] Acertei o exercício de previsão da seção 4 e o checkpoint rápido da seção 9.
+- [x] Fiz Aquecimento e Aplicação; 10 voltas de ciclo abaixo de 10s.
+- [x] Construí o `socorro-execucao.md` e ele passou no teste de usabilidade.
+- [x] Registrei a sessão e agendei as 4 revisões.
 
 ---
 

@@ -14,7 +14,7 @@ total = 250
 
 # A linha abaixo tem um nome digitado errado DE PROPÓSITO ("totaal").
 # Missão do Experimento 2: ler o traceback e consertar só o necessário.
-print(totaal)
+print(total)
 
 print("Etapa 3: total calculado")
 print("Fim do programa.")

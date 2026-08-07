@@ -8,6 +8,6 @@
 
 # Mude o texto abaixo a cada volta do ciclo (e não esqueça o Ctrl+S —
 # a bolinha na aba do VS Code denuncia arquivo não salvo).
-print("Volta 1 do ciclo: edite, salve, execute, leia.")
+print("Volta 1 do ciclo: edite, salve, execute, leia, oxe oxe.")
 
 # Saída: (o texto que estiver acima no momento da execução)
